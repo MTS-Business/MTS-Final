@@ -22,9 +22,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
+  Dialog,
+  DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useEffect } from "react";
 
 interface InvoiceFormProps {
@@ -41,6 +53,8 @@ interface SelectedProduct {
 export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
   const { toast } = useToast();
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
+  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
 
   const form = useForm({
     resolver: zodResolver(insertInvoiceSchema),
@@ -72,16 +86,28 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
     form.setValue("total", total);
   }, [selectedProducts]);
 
-  const addProduct = (productId: string) => {
-    const product = products?.find((p: any) => p.id.toString() === productId);
-    if (product && !selectedProducts.find(p => p.id === product.id)) {
-      setSelectedProducts([...selectedProducts, {
+  const handleProductSelection = (productId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedProductIds([...selectedProductIds, productId]);
+    } else {
+      setSelectedProductIds(selectedProductIds.filter(id => id !== productId));
+    }
+  };
+
+  const handleProductDialogConfirm = () => {
+    const newSelectedProducts = selectedProductIds
+      .map(id => products?.find((p: any) => p.id === id))
+      .filter((p): p is any => p !== undefined)
+      .map(product => ({
         id: product.id,
         name: product.name,
         price: Number(product.price),
         quantity: 1
-      }]);
-    }
+      }));
+
+    setSelectedProducts([...selectedProducts, ...newSelectedProducts]);
+    setIsProductDialogOpen(false);
+    setSelectedProductIds([]);
   };
 
   const updateProductQuantity = (productId: number, quantity: number) => {
@@ -182,24 +208,68 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
 
           <div className="space-y-2">
             <FormLabel>Produits</FormLabel>
-            <Select onValueChange={addProduct}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Ajouter un produit" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {products?.map((product: any) => (
-                  <SelectItem
-                    key={product.id}
-                    value={product.id.toString()}
-                    disabled={selectedProducts.some(p => p.id === product.id)}
+            <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
+              <DialogTrigger asChild>
+                <Button type="button" className="w-full">
+                  Sélectionner des produits
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                  <DialogTitle>Sélectionner les produits</DialogTitle>
+                </DialogHeader>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12"></TableHead>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-right">Prix</TableHead>
+                      <TableHead className="text-right">Stock</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {products?.map((product: any) => (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedProductIds.includes(product.id)}
+                            onCheckedChange={(checked) => 
+                              handleProductSelection(product.id, checked as boolean)
+                            }
+                            disabled={selectedProducts.some(p => p.id === product.id)}
+                          />
+                        </TableCell>
+                        <TableCell>{product.name}</TableCell>
+                        <TableCell>{product.description}</TableCell>
+                        <TableCell className="text-right">
+                          {Number(product.price).toFixed(2)} €
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {product.quantity}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsProductDialogOpen(false)}
                   >
-                    {product.name} - {Number(product.price).toFixed(2)} €
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                    Annuler
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleProductDialogConfirm}
+                    disabled={selectedProductIds.length === 0}
+                  >
+                    Valider
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             <div className="space-y-2">
               {selectedProducts.map(product => (
@@ -236,6 +306,32 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
 
           <FormField
             control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Statut</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner le statut" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="pending">En attente</SelectItem>
+                    <SelectItem value="paid">Payée</SelectItem>
+                    <SelectItem value="cancelled">Annulée</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="paymentType"
             render={({ field }) => (
               <FormItem>
@@ -254,32 +350,6 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
                     <SelectItem value="espece">Espèce</SelectItem>
                     <SelectItem value="cheque">Chèque</SelectItem>
                     <SelectItem value="traite">Traite</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Statut</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner le statut" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="pending">En attente</SelectItem>
-                    <SelectItem value="paid">Payée</SelectItem>
-                    <SelectItem value="cancelled">Annulée</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
