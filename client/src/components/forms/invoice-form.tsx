@@ -54,6 +54,7 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
   const { toast } = useToast();
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [temporaryQuantities, setTemporaryQuantities] = useState<Record<number, number>>({});
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
 
   const form = useForm({
@@ -89,34 +90,40 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
   const handleProductSelection = (productId: number, checked: boolean) => {
     if (checked) {
       setSelectedProductIds([...selectedProductIds, productId]);
+      setTemporaryQuantities({ ...temporaryQuantities, [productId]: 1 });
     } else {
       setSelectedProductIds(selectedProductIds.filter(id => id !== productId));
+      const newQuantities = { ...temporaryQuantities };
+      delete newQuantities[productId];
+      setTemporaryQuantities(newQuantities);
     }
+  };
+
+  const handleQuantityChange = (productId: number, quantity: number) => {
+    setTemporaryQuantities({
+      ...temporaryQuantities,
+      [productId]: quantity
+    });
   };
 
   const handleProductDialogConfirm = () => {
     const newSelectedProducts = selectedProductIds
-      .map(id => products?.find((p: any) => p.id === id))
-      .filter((p): p is any => p !== undefined)
-      .map(product => ({
-        id: product.id,
-        name: product.name,
-        price: Number(product.price),
-        quantity: 1
-      }));
+      .map(id => {
+        const product = products?.find((p: any) => p.id === id);
+        if (!product) return null;
+        return {
+          id: product.id,
+          name: product.name,
+          price: Number(product.price),
+          quantity: temporaryQuantities[product.id] || 1
+        };
+      })
+      .filter((p): p is SelectedProduct => p !== null);
 
     setSelectedProducts([...selectedProducts, ...newSelectedProducts]);
     setIsProductDialogOpen(false);
     setSelectedProductIds([]);
-  };
-
-  const updateProductQuantity = (productId: number, quantity: number) => {
-    setSelectedProducts(selectedProducts.map(product => {
-      if (product.id === productId) {
-        return { ...product, quantity };
-      }
-      return product;
-    }));
+    setTemporaryQuantities({});
   };
 
   const removeProduct = (productId: number) => {
@@ -168,7 +175,7 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-h-[80vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>Nouvelle Facture</DialogTitle>
       </DialogHeader>
@@ -214,44 +221,59 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
                   Sélectionner des produits
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-3xl">
+              <DialogContent className="max-w-4xl">
                 <DialogHeader>
                   <DialogTitle>Sélectionner les produits</DialogTitle>
                 </DialogHeader>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12"></TableHead>
-                      <TableHead>Nom</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead className="text-right">Prix</TableHead>
-                      <TableHead className="text-right">Stock</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {products?.map((product: any) => (
-                      <TableRow key={product.id}>
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedProductIds.includes(product.id)}
-                            onCheckedChange={(checked) =>
-                              handleProductSelection(product.id, checked as boolean)
-                            }
-                            disabled={selectedProducts.some(p => p.id === product.id)}
-                          />
-                        </TableCell>
-                        <TableCell>{product.name}</TableCell>
-                        <TableCell>{product.description}</TableCell>
-                        <TableCell className="text-right">
-                          {Number(product.price).toFixed(2)} €
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {product.quantity}
-                        </TableCell>
+                <div className="max-h-[60vh] overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12"></TableHead>
+                        <TableHead>Nom</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-right">Prix</TableHead>
+                        <TableHead className="text-right">Stock</TableHead>
+                        <TableHead className="text-right w-32">Quantité</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {products?.map((product: any) => (
+                        <TableRow key={product.id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedProductIds.includes(product.id)}
+                              onCheckedChange={(checked) =>
+                                handleProductSelection(product.id, checked as boolean)
+                              }
+                              disabled={selectedProducts.some(p => p.id === product.id)}
+                            />
+                          </TableCell>
+                          <TableCell>{product.name}</TableCell>
+                          <TableCell>{product.description}</TableCell>
+                          <TableCell className="text-right">
+                            {Number(product.price).toFixed(2)} €
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {product.quantity}
+                          </TableCell>
+                          <TableCell>
+                            {selectedProductIds.includes(product.id) && (
+                              <Input
+                                type="number"
+                                min="1"
+                                max={product.quantity}
+                                value={temporaryQuantities[product.id] || 1}
+                                onChange={(e) => handleQuantityChange(product.id, Number(e.target.value))}
+                                className="w-24"
+                              />
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
                 <div className="flex justify-end gap-2 mt-4">
                   <Button
                     type="button"
@@ -271,36 +293,33 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
               </DialogContent>
             </Dialog>
 
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[30vh] overflow-y-auto border rounded-lg p-4">
               {selectedProducts.map(product => (
-                <div key={product.id} className="flex items-center gap-2 p-2 border rounded">
-                  <div className="flex-1">{product.name}</div>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="number"
-                      min="1"
-                      className="w-20"
-                      value={product.quantity}
-                      onChange={(e) => updateProductQuantity(product.id, Number(e.target.value))}
-                    />
-                    <div className="w-24 text-right">
-                      {(product.price * product.quantity).toFixed(2)} €
+                <div key={product.id} className="flex items-center justify-between p-2 border rounded">
+                  <div className="flex-1">
+                    <div className="font-medium">{product.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {product.quantity} x {Number(product.price).toFixed(2)} €
                     </div>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => removeProduct(product.id)}
-                    >
-                      ×
-                    </Button>
                   </div>
+                  <div className="text-right font-medium">
+                    {(product.price * product.quantity).toFixed(2)} €
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeProduct(product.id)}
+                    className="ml-2"
+                  >
+                    ×
+                  </Button>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="text-right font-bold">
+          <div className="text-right font-bold text-lg border-t pt-4">
             Total: {calculateTotal().toFixed(2)} €
           </div>
 
