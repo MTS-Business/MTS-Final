@@ -8,6 +8,7 @@ export const customers = pgTable("customers", {
   email: text("email").notNull(),
   phone: text("phone").notNull(),
   address: text("address").notNull(),
+  fiscalNumber: text("fiscal_number"),
 });
 
 export const products = pgTable("products", {
@@ -43,7 +44,9 @@ export const expenses = pgTable("expenses", {
 });
 
 // Schémas de validation modifiés pour gérer les types numériques
-export const insertCustomerSchema = createInsertSchema(customers);
+export const insertCustomerSchema = createInsertSchema(customers, {
+  fiscalNumber: z.string().optional(),
+});
 
 export const insertProductSchema = createInsertSchema(products, {
   price: z.number(),

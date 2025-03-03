@@ -11,6 +11,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +33,7 @@ export default function CustomerForm({ onSuccess }: CustomerFormProps) {
       email: "",
       phone: "",
       address: "",
+      fiscalNumber: "",
     },
   });
 
@@ -48,8 +50,8 @@ export default function CustomerForm({ onSuccess }: CustomerFormProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
       toast({
-        title: "Customer created",
-        description: "The customer has been added successfully",
+        title: "Client créé",
+        description: "Le client a été ajouté avec succès",
       });
       onSuccess?.();
     },
@@ -62,7 +64,7 @@ export default function CustomerForm({ onSuccess }: CustomerFormProps) {
   return (
     <div className="space-y-4">
       <DialogHeader>
-        <DialogTitle>Add New Customer</DialogTitle>
+        <DialogTitle>Ajouter un nouveau client</DialogTitle>
       </DialogHeader>
 
       <Form {...form}>
@@ -72,7 +74,7 @@ export default function CustomerForm({ onSuccess }: CustomerFormProps) {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>Nom</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -100,7 +102,7 @@ export default function CustomerForm({ onSuccess }: CustomerFormProps) {
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone</FormLabel>
+                <FormLabel>Téléphone</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -114,7 +116,7 @@ export default function CustomerForm({ onSuccess }: CustomerFormProps) {
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Address</FormLabel>
+                <FormLabel>Adresse</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -123,8 +125,25 @@ export default function CustomerForm({ onSuccess }: CustomerFormProps) {
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="fiscalNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Matricule Fiscale</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormDescription>
+                  Ce champ est optionnel
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <Button type="submit" className="w-full">
-            Add Customer
+            Ajouter le client
           </Button>
         </form>
       </Form>
