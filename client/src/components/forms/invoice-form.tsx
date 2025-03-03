@@ -183,7 +183,7 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
                 <FormLabel>Client</FormLabel>
                 <Select
                   onValueChange={(value) => field.onChange(Number(value))}
-                  value={field.value?.toString()}
+                  defaultValue={field.value?.toString()}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -234,7 +234,7 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
                         <TableCell>
                           <Checkbox
                             checked={selectedProductIds.includes(product.id)}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={(checked) =>
                               handleProductSelection(product.id, checked as boolean)
                             }
                             disabled={selectedProducts.some(p => p.id === product.id)}
@@ -306,39 +306,13 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
 
           <FormField
             control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Statut</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner le statut" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="pending">En attente</SelectItem>
-                    <SelectItem value="paid">Payée</SelectItem>
-                    <SelectItem value="cancelled">Annulée</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="paymentType"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Type de paiement</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  value={field.value}
+                  defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -350,6 +324,32 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
                     <SelectItem value="espece">Espèce</SelectItem>
                     <SelectItem value="cheque">Chèque</SelectItem>
                     <SelectItem value="traite">Traite</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Statut</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner le statut" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="pending">En attente</SelectItem>
+                    <SelectItem value="paid">Payée</SelectItem>
+                    <SelectItem value="cancelled">Annulée</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
