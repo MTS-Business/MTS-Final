@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { insertCustomerSchema, insertProductSchema, insertInvoiceSchema, insertExpenseSchema } from "@shared/schema";
+import { insertCustomerSchema, insertProductSchema, insertServiceSchema, insertInvoiceSchema, insertExpenseSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express) {
   // Customers
@@ -26,6 +26,18 @@ export async function registerRoutes(app: Express) {
     const data = insertProductSchema.parse(req.body);
     const product = await storage.createProduct(data);
     res.json(product);
+  });
+
+  // Services
+  app.get("/api/services", async (_req, res) => {
+    const services = await storage.getServices();
+    res.json(services);
+  });
+
+  app.post("/api/services", async (req, res) => {
+    const data = insertServiceSchema.parse(req.body);
+    const service = await storage.createService(data);
+    res.json(service);
   });
 
   // Invoices

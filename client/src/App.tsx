@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import Navbar from "@/components/layout/navbar";
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
+import Services from "@/pages/services";
 import Invoices from "@/pages/invoices";
 import Customers from "@/pages/customers";
 import Expenses from "@/pages/expenses";
@@ -19,6 +20,7 @@ function Router() {
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/inventory" component={Inventory} />
+          <Route path="/services" component={Services} />
           <Route path="/invoices" component={Invoices} />
           <Route path="/customers" component={Customers} />
           <Route path="/expenses" component={Expenses} />

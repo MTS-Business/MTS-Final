@@ -15,7 +15,7 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Plus, Edit } from "lucide-react";
 import { format } from "date-fns";
 import InvoiceForm from "@/components/forms/invoice-form";
 import { useState } from "react";
@@ -32,6 +32,19 @@ export default function Invoices() {
   if (isLoading) {
     return <div>Loading...</div>;
   }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-orange-100 text-orange-800";
+      case "paid":
+        return "bg-green-100 text-green-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -80,6 +93,7 @@ export default function Invoices() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[100px]">Actions</TableHead>
               <TableHead>Facture #</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Client</TableHead>
@@ -90,6 +104,11 @@ export default function Invoices() {
           <TableBody>
             {invoices?.map((invoice: any) => (
               <TableRow key={invoice.id}>
+                <TableCell>
+                  <Button variant="ghost" size="sm">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </TableCell>
                 <TableCell className="font-medium">FAC-{invoice.id}</TableCell>
                 <TableCell>
                   {format(new Date(invoice.date), "dd/MM/yyyy")}
@@ -98,11 +117,7 @@ export default function Invoices() {
                 <TableCell>
                   <div
                     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      invoice.status === "paid"
-                        ? "bg-green-100 text-green-800"
-                        : invoice.status === "pending"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-red-100 text-red-800"
+                      getStatusColor(invoice.status)
                     }`}
                   >
                     {invoice.status === "paid" ? "Payée" :

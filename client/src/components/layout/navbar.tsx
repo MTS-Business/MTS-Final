@@ -6,16 +6,18 @@ import {
   FileText,
   Users,
   DollarSign,
-  TrendingUp
+  TrendingUp,
+  Briefcase
 } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/inventory", label: "Inventory", icon: Package },
-  { href: "/invoices", label: "Invoices", icon: FileText },
-  { href: "/customers", label: "Customers", icon: Users },
-  { href: "/expenses", label: "Expenses", icon: DollarSign },
-  { href: "/sales", label: "Sales", icon: TrendingUp },
+  { href: "/services", label: "Services", icon: Briefcase },
+  { href: "/invoices", label: "Factures", icon: FileText },
+  { href: "/customers", label: "Clients", icon: Users },
+  { href: "/expenses", label: "Dépenses", icon: DollarSign },
+  { href: "/sales", label: "Ventes", icon: TrendingUp },
 ];
 
 export default function Navbar() {

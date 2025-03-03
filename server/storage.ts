@@ -1,6 +1,7 @@
 import {
   type Customer, type InsertCustomer,
   type Product, type InsertProduct,
+  type Service, type InsertService,
   type Invoice, type InsertInvoice,
   type InvoiceItem, type InsertInvoiceItem,
   type Expense, type InsertExpense
@@ -11,21 +12,26 @@ export interface IStorage {
   getCustomers(): Promise<Customer[]>;
   getCustomer(id: number): Promise<Customer | undefined>;
   createCustomer(customer: InsertCustomer): Promise<Customer>;
-  
+
   // Products
   getProducts(): Promise<Product[]>;
   getProduct(id: number): Promise<Product | undefined>;
   createProduct(product: InsertProduct): Promise<Product>;
   updateProductQuantity(id: number, quantity: number): Promise<Product>;
-  
+
+  // Services
+  getServices(): Promise<Service[]>;
+  getService(id: number): Promise<Service | undefined>;
+  createService(service: InsertService): Promise<Service>;
+
   // Invoices
   getInvoices(): Promise<Invoice[]>;
   getInvoice(id: number): Promise<Invoice | undefined>;
   createInvoice(invoice: InsertInvoice, items: InsertInvoiceItem[]): Promise<Invoice>;
-  
+
   // Invoice Items
   getInvoiceItems(invoiceId: number): Promise<InvoiceItem[]>;
-  
+
   // Expenses
   getExpenses(): Promise<Expense[]>;
   createExpense(expense: InsertExpense): Promise<Expense>;
@@ -34,6 +40,7 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private customers: Map<number, Customer>;
   private products: Map<number, Product>;
+  private services: Map<number, Service>;
   private invoices: Map<number, Invoice>;
   private invoiceItems: Map<number, InvoiceItem>;
   private expenses: Map<number, Expense>;
@@ -42,12 +49,14 @@ export class MemStorage implements IStorage {
   constructor() {
     this.customers = new Map();
     this.products = new Map();
+    this.services = new Map();
     this.invoices = new Map();
     this.invoiceItems = new Map();
     this.expenses = new Map();
     this.currentIds = {
       customer: 1,
       product: 1,
+      service: 1,
       invoice: 1,
       invoiceItem: 1,
       expense: 1
@@ -92,6 +101,21 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
+  async getServices(): Promise<Service[]> {
+    return Array.from(this.services.values());
+  }
+
+  async getService(id: number): Promise<Service | undefined> {
+    return this.services.get(id);
+  }
+
+  async createService(insertService: InsertService): Promise<Service> {
+    const id = this.currentIds.service++;
+    const service = { ...insertService, id };
+    this.services.set(id, service);
+    return service;
+  }
+
   async getInvoices(): Promise<Invoice[]> {
     return Array.from(this.invoices.values());
   }
@@ -111,10 +135,12 @@ export class MemStorage implements IStorage {
       const invoiceItem = { ...item, id: itemId, invoiceId: id };
       this.invoiceItems.set(itemId, invoiceItem);
 
-      // Update product quantity
-      const product = await this.getProduct(item.productId);
-      if (product) {
-        await this.updateProductQuantity(product.id, product.quantity - item.quantity);
+      // Update product quantity if it's a product
+      if (item.productId) {
+        const product = await this.getProduct(item.productId);
+        if (product) {
+          await this.updateProductQuantity(product.id, product.quantity - item.quantity);
+        }
       }
     }
 
