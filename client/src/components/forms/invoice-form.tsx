@@ -41,6 +41,8 @@ import { useState, useEffect } from "react";
 
 interface InvoiceFormProps {
   onSuccess?: () => void;
+  stampDuty: number;
+  vat: number;
 }
 
 interface SelectedProduct {
@@ -50,7 +52,7 @@ interface SelectedProduct {
   quantity: number;
 }
 
-export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
+export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormProps) {
   const { toast } = useToast();
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
@@ -76,16 +78,22 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
     queryKey: ["/api/products"],
   });
 
-  const calculateTotal = () => {
+  const calculateSubTotal = () => {
     return selectedProducts.reduce((total, product) => {
       return total + (product.price * product.quantity);
     }, 0);
   };
 
+  const calculateTotal = () => {
+    const subtotal = calculateSubTotal();
+    const vatAmount = subtotal * (vat / 100);
+    return subtotal + vatAmount + stampDuty;
+  };
+
   useEffect(() => {
     const total = calculateTotal();
     form.setValue("total", total);
-  }, [selectedProducts]);
+  }, [selectedProducts, vat, stampDuty]);
 
   const handleProductSelection = (productId: number, checked: boolean) => {
     if (checked) {
@@ -319,8 +327,23 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
             </div>
           </div>
 
-          <div className="text-right font-bold text-lg border-t pt-4">
-            Total: {calculateTotal().toFixed(2)} €
+          <div className="space-y-2 border-t pt-4">
+            <div className="flex justify-between text-sm">
+              <span>Sous-total:</span>
+              <span>{calculateSubTotal().toFixed(2)} €</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>TVA ({vat}%):</span>
+              <span>{(calculateSubTotal() * (vat / 100)).toFixed(2)} €</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Timbre fiscal:</span>
+              <span>{stampDuty.toFixed(2)} €</span>
+            </div>
+            <div className="flex justify-between text-lg font-bold">
+              <span>Total:</span>
+              <span>{calculateTotal().toFixed(2)} €</span>
+            </div>
           </div>
 
           <FormField

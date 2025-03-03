@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -9,18 +10,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus } from "lucide-react";
-import { format } from "date-fns";
 import {
   Dialog,
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Plus } from "lucide-react";
+import { format } from "date-fns";
 import InvoiceForm from "@/components/forms/invoice-form";
 import { useState } from "react";
+import { Label } from "@/components/ui/label";
 
 export default function Invoices() {
   const [open, setOpen] = useState(false);
+  const [stampDuty, setStampDuty] = useState("1");
+  const [vat, setVat] = useState("19");
   const { data: invoices, isLoading } = useQuery({
     queryKey: ["/api/invoices"],
   });
@@ -32,27 +36,53 @@ export default function Invoices() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Invoices</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Invoice
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <InvoiceForm onSuccess={() => setOpen(false)} />
-          </DialogContent>
-        </Dialog>
+        <h1 className="text-3xl font-bold">Factures</h1>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="stampDuty" className="whitespace-nowrap">Timbre fiscal:</Label>
+            <Input
+              id="stampDuty"
+              type="number"
+              value={stampDuty}
+              onChange={(e) => setStampDuty(e.target.value)}
+              className="w-20"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="vat" className="whitespace-nowrap">TVA (%):</Label>
+            <Input
+              id="vat"
+              type="number"
+              value={vat}
+              onChange={(e) => setVat(e.target.value)}
+              className="w-20"
+            />
+          </div>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Nouvelle Facture
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <InvoiceForm 
+                onSuccess={() => setOpen(false)} 
+                stampDuty={Number(stampDuty)}
+                vat={Number(vat)}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Invoice #</TableHead>
+              <TableHead>Facture #</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Customer</TableHead>
+              <TableHead>Client</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Total</TableHead>
             </TableRow>
@@ -60,9 +90,9 @@ export default function Invoices() {
           <TableBody>
             {invoices?.map((invoice: any) => (
               <TableRow key={invoice.id}>
-                <TableCell className="font-medium">INV-{invoice.id}</TableCell>
+                <TableCell className="font-medium">FAC-{invoice.id}</TableCell>
                 <TableCell>
-                  {format(new Date(invoice.date), "MMM dd, yyyy")}
+                  {format(new Date(invoice.date), "dd/MM/yyyy")}
                 </TableCell>
                 <TableCell>{invoice.customerId}</TableCell>
                 <TableCell>
@@ -75,7 +105,8 @@ export default function Invoices() {
                         : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {invoice.status}
+                    {invoice.status === "paid" ? "Payée" :
+                     invoice.status === "pending" ? "En attente" : "Annulée"}
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
