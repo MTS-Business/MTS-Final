@@ -42,8 +42,8 @@ export default function Inventory() {
     defaultValues: {
       name: "",
       description: "",
-      price: "",
-      quantity: "",
+      price: 0,
+      quantity: 0,
     },
   });
 
@@ -134,6 +134,7 @@ export default function Inventory() {
                           type="number"
                           step="0.01"
                           {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -150,6 +151,7 @@ export default function Inventory() {
                         <Input
                           type="number"
                           {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
                         />
                       </FormControl>
                       <FormMessage />
