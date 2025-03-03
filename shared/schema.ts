@@ -25,6 +25,7 @@ export const invoices = pgTable("invoices", {
   date: timestamp("date").notNull(),
   total: numeric("total").notNull(),
   status: text("status").notNull(), // paid, pending, cancelled
+  paymentType: text("payment_type").notNull(), // virement, espece, cheque, traite
 });
 
 export const invoiceItems = pgTable("invoice_items", {
@@ -55,6 +56,7 @@ export const insertProductSchema = createInsertSchema(products, {
 
 export const insertInvoiceSchema = createInsertSchema(invoices, {
   total: z.number(),
+  paymentType: z.enum(["virement", "espece", "cheque", "traite"]),
 });
 
 export const insertInvoiceItemSchema = createInsertSchema(invoiceItems);
