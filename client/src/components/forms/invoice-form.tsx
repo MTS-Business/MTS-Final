@@ -21,6 +21,10 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface InvoiceFormProps {
   onSuccess?: () => void;
@@ -31,7 +35,7 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
   const form = useForm({
     resolver: zodResolver(insertInvoiceSchema),
     defaultValues: {
-      customerId: 0,
+      customerId: undefined,
       date: new Date().toISOString(),
       total: 0,
       status: "pending",
@@ -40,10 +44,6 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
 
   const { data: customers } = useQuery({
     queryKey: ["/api/customers"],
-  });
-
-  const { data: products } = useQuery({
-    queryKey: ["/api/products"],
   });
 
   const createInvoice = useMutation({
@@ -59,8 +59,8 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
       toast({
-        title: "Invoice created",
-        description: "The invoice has been created successfully",
+        title: "Facture créée",
+        description: "La facture a été créée avec succès",
       });
       onSuccess?.();
     },
@@ -71,88 +71,94 @@ export default function InvoiceForm({ onSuccess }: InvoiceFormProps) {
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="customerId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Customer</FormLabel>
-              <Select
-                onValueChange={(value) => field.onChange(Number(value))}
-                defaultValue={field.value.toString()}
-              >
+    <div className="space-y-4">
+      <DialogHeader>
+        <DialogTitle>Nouvelle Facture</DialogTitle>
+      </DialogHeader>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="customerId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Client</FormLabel>
+                <Select
+                  onValueChange={(value) => field.onChange(Number(value))}
+                  value={field.value?.toString()}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un client" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {customers?.map((customer: any) => (
+                      <SelectItem
+                        key={customer.id}
+                        value={customer.id.toString()}
+                      >
+                        {customer.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Statut</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner le statut" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="pending">En attente</SelectItem>
+                    <SelectItem value="paid">Payée</SelectItem>
+                    <SelectItem value="cancelled">Annulée</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="total"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Montant total</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a customer" />
-                  </SelectTrigger>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
                 </FormControl>
-                <SelectContent>
-                  {customers?.map((customer: any) => (
-                    <SelectItem
-                      key={customer.id}
-                      value={customer.id.toString()}
-                    >
-                      {customer.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Status</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="total"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Total</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" className="w-full">
-          Create Invoice
-        </Button>
-      </form>
-    </Form>
+          <Button type="submit" className="w-full">
+            Créer la facture
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 }
