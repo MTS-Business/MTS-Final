@@ -42,11 +42,22 @@ export const expenses = pgTable("expenses", {
   category: text("category").notNull(),
 });
 
+// Schémas de validation modifiés pour gérer les types numériques
 export const insertCustomerSchema = createInsertSchema(customers);
-export const insertProductSchema = createInsertSchema(products);
-export const insertInvoiceSchema = createInsertSchema(invoices);
+
+export const insertProductSchema = createInsertSchema(products).extend({
+  price: z.string().transform((val) => Number(val)),
+  quantity: z.string().transform((val) => Number(val))
+});
+
+export const insertInvoiceSchema = createInsertSchema(invoices).extend({
+  total: z.string().transform((val) => Number(val))
+});
+
 export const insertInvoiceItemSchema = createInsertSchema(invoiceItems);
-export const insertExpenseSchema = createInsertSchema(expenses);
+export const insertExpenseSchema = createInsertSchema(expenses).extend({
+  amount: z.string().transform((val) => Number(val))
+});
 
 export type Customer = typeof customers.$inferSelect;
 export type Product = typeof products.$inferSelect;

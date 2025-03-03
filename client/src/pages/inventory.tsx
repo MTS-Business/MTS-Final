@@ -53,15 +53,10 @@ export default function Inventory() {
 
   const createProduct = useMutation({
     mutationFn: async (data: any) => {
-      const productData = {
-        ...data,
-        price: Number(data.price),
-        quantity: Number(data.quantity)
-      };
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(productData),
+        body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Failed to create product");
       return res.json();
