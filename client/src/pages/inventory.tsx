@@ -42,8 +42,8 @@ export default function Inventory() {
     defaultValues: {
       name: "",
       description: "",
-      price: 0,
-      quantity: 0,
+      price: "",
+      quantity: "",
     },
   });
 
@@ -53,10 +53,15 @@ export default function Inventory() {
 
   const createProduct = useMutation({
     mutationFn: async (data: any) => {
+      const productData = {
+        ...data,
+        price: Number(data.price),
+        quantity: Number(data.quantity)
+      };
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(productData),
       });
       if (!res.ok) throw new Error("Failed to create product");
       return res.json();
@@ -66,8 +71,8 @@ export default function Inventory() {
       setOpen(false);
       form.reset();
       toast({
-        title: "Product created",
-        description: "The product has been added to inventory",
+        title: "Produit créé",
+        description: "Le produit a été ajouté à l'inventaire",
       });
     },
   });
@@ -83,17 +88,17 @@ export default function Inventory() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Inventory</h1>
+        <h1 className="text-3xl font-bold">Inventaire</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Add Product
+              Ajouter un produit
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Product</DialogTitle>
+              <DialogTitle>Ajouter un nouveau produit</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -102,7 +107,7 @@ export default function Inventory() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name</FormLabel>
+                      <FormLabel>Nom</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -128,13 +133,12 @@ export default function Inventory() {
                   name="price"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Price</FormLabel>
+                      <FormLabel>Prix</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           step="0.01"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -146,12 +150,11 @@ export default function Inventory() {
                   name="quantity"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Quantity</FormLabel>
+                      <FormLabel>Quantité</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -159,7 +162,7 @@ export default function Inventory() {
                   )}
                 />
                 <Button type="submit" className="w-full">
-                  Add Product
+                  Ajouter le produit
                 </Button>
               </form>
             </Form>
@@ -171,10 +174,10 @@ export default function Inventory() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <TableHead>Nom</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Quantity</TableHead>
+              <TableHead>Prix</TableHead>
+              <TableHead>Quantité</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
