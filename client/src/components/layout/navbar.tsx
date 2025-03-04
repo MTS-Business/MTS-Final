@@ -39,10 +39,11 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
       <div className="flex flex-col h-full p-4">
         <div className="flex items-center justify-between mb-8">
           <div className={cn(
-            "font-bold text-2xl text-primary transition-all",
-            isCollapsed ? "hidden" : "block"
+            "font-bold text-2xl transition-all",
+            isCollapsed ? "hidden" : "block",
+            "text-[#862325]"
           )}>
-            Business Manager
+            MTS gestion
           </div>
           <Button
             variant="ghost"
