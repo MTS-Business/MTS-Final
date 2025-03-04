@@ -5,19 +5,48 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Camera, Mail, UserCircle, Bell, Lock, Save } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Profile() {
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [userInfo, setUserInfo] = useState({
     name: "John Cena",
     email: "john.cena@example.com",
     role: "Administrateur",
+    avatar: "/avatar.png",
     notifications: {
       email: true,
       push: true,
       messages: true
     }
   });
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Simuler le changement d'avatar avec un URL temporaire
+      const tempUrl = URL.createObjectURL(file);
+      setUserInfo({ ...userInfo, avatar: tempUrl });
+      toast({
+        title: "Photo de profil mise à jour",
+        description: "Votre photo de profil a été changée avec succès."
+      });
+    }
+  };
+
+  const handleSaveChanges = () => {
+    // Simuler la sauvegarde
+    toast({
+      title: "Modifications enregistrées",
+      description: "Vos modifications ont été enregistrées avec succès."
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -29,12 +58,22 @@ export default function Profile() {
           <div className="flex flex-col items-center mb-6">
             <div className="relative">
               <Avatar className="w-24 h-24">
-                <AvatarImage src="/avatar.png" />
+                <AvatarImage src={userInfo.avatar} />
                 <AvatarFallback>JC</AvatarFallback>
               </Avatar>
-              <button className="absolute bottom-0 right-0 p-2 bg-[#0077B6] rounded-full text-white">
+              <button 
+                onClick={handleAvatarClick}
+                className="absolute bottom-0 right-0 p-2 bg-[#0077B6] rounded-full text-white hover:bg-[#0077B6]/90 transition-colors"
+              >
                 <Camera className="h-4 w-4" />
               </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
             </div>
           </div>
 
@@ -78,7 +117,10 @@ export default function Profile() {
               />
             </div>
 
-            <Button className="w-full bg-[#0077B6] text-white hover:bg-[#0077B6]/90">
+            <Button 
+              className="w-full bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
+              onClick={handleSaveChanges}
+            >
               <Save className="mr-2 h-4 w-4" />
               Enregistrer les modifications
             </Button>
@@ -106,7 +148,7 @@ export default function Profile() {
                   }
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Notifications push</Label>
