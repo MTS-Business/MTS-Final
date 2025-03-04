@@ -84,9 +84,10 @@ export default function Invoices() {
 
   const handlePrint = async (invoice: any) => {
     await handlePreview(invoice);
+    // Augmenter le délai pour s'assurer que le contenu est chargé
     setTimeout(() => {
       window.print();
-    }, 500);
+    }, 1000);
   };
 
   return (
