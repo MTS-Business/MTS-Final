@@ -14,6 +14,7 @@ import Expenses from "@/pages/expenses";
 import Sales from "@/pages/sales";
 import Messages from "@/pages/messages";
 import Profile from "@/pages/profile";
+import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 import { useState } from "react";
 
@@ -36,6 +37,7 @@ function Router() {
             <Route path="/sales" component={Sales} />
             <Route path="/messages" component={Messages} />
             <Route path="/profile" component={Profile} />
+            <Route path="/admin" component={Admin} />
             <Route component={NotFound} />
           </Switch>
         </div>

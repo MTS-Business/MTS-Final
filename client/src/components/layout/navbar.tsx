@@ -9,9 +9,11 @@ import {
   TrendingUp,
   Briefcase,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -21,6 +23,10 @@ const navItems = [
   { href: "/customers", label: "Clients", icon: Users },
   { href: "/expenses", label: "Dépenses", icon: DollarSign },
   { href: "/sales", label: "Ventes", icon: TrendingUp },
+];
+
+const adminItems = [
+  { href: "/admin", label: "Administration", icon: Shield },
 ];
 
 interface NavbarProps {
@@ -60,6 +66,33 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
         </div>
         <div className="flex flex-col gap-2">
           {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link key={item.href} href={item.href}>
+                <a
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                    location === item.href
+                      ? "bg-[#0077B6] text-white"
+                      : "hover:bg-[#0077B6]/10"
+                  )}
+                  title={isCollapsed ? item.label : undefined}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className={cn(
+                    "transition-all",
+                    isCollapsed ? "hidden" : "block"
+                  )}>
+                    {item.label}
+                  </span>
+                </a>
+              </Link>
+            );
+          })}
+
+          <Separator className="my-4" />
+
+          {adminItems.map((item) => {
             const Icon = item.icon;
             return (
               <Link key={item.href} href={item.href}>
