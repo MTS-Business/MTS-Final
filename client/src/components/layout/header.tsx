@@ -55,7 +55,7 @@ export default function Header({ userName = "John Cena" }: HeaderProps) {
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setLocation('/profile')}>
               <User className="mr-2 h-4 w-4" />
               <span>Profil</span>
             </DropdownMenuItem>
