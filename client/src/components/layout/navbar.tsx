@@ -67,8 +67,8 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
                     location === item.href
-                      ? "bg-[#5FBFF9] text-white"
-                      : "hover:bg-[#5FBFF9]/10"
+                      ? "bg-[#0077B6] text-white"
+                      : "hover:bg-[#0077B6]/10"
                   )}
                   title={isCollapsed ? item.label : undefined}
                 >
