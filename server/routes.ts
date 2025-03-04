@@ -57,10 +57,34 @@ export async function registerRoutes(app: Express) {
   });
 
   app.post("/api/invoices", async (req, res) => {
-    const { invoice, items } = req.body;
-    const validatedInvoice = insertInvoiceSchema.parse(invoice);
-    const newInvoice = await storage.createInvoice(validatedInvoice, items);
-    res.json(newInvoice);
+    try {
+      console.log('Received invoice data:', req.body);
+      const { invoice, items } = req.body;
+
+      // Convert numeric strings to numbers
+      const validatedInvoice = {
+        ...invoice,
+        customerId: Number(invoice.customerId),
+        total: Number(invoice.total),
+      };
+
+      const validatedItems = items.map((item: any) => ({
+        ...item,
+        price: Number(item.price),
+        quantity: Number(item.quantity),
+        productId: item.productId ? Number(item.productId) : null,
+        serviceId: item.serviceId ? Number(item.serviceId) : null,
+      }));
+
+      console.log('Validated invoice:', validatedInvoice);
+      console.log('Validated items:', validatedItems);
+
+      const newInvoice = await storage.createInvoice(validatedInvoice, validatedItems);
+      res.json(newInvoice);
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+      res.status(400).json({ error: String(error) });
+    }
   });
 
   // Expenses

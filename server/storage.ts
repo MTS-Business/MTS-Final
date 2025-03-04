@@ -157,7 +157,7 @@ export class MemStorage implements IStorage {
 
   async createProduct(insertProduct: InsertProduct): Promise<Product> {
     const id = this.currentIds.product++;
-    const product = { ...insertProduct, id };
+    const product = { ...insertProduct, id, price: String(insertProduct.price) };
     this.products.set(id, product);
     return product;
   }
@@ -180,7 +180,7 @@ export class MemStorage implements IStorage {
 
   async createService(insertService: InsertService): Promise<Service> {
     const id = this.currentIds.service++;
-    const service = { ...insertService, id };
+    const service = { ...insertService, id, price: String(insertService.price) };
     this.services.set(id, service);
     return service;
   }
@@ -195,13 +195,18 @@ export class MemStorage implements IStorage {
 
   async createInvoice(insertInvoice: InsertInvoice, items: InsertInvoiceItem[]): Promise<Invoice> {
     const id = this.currentIds.invoice++;
-    const invoice = { ...insertInvoice, id };
+    const invoice = { ...insertInvoice, id, total: String(insertInvoice.total) };
     this.invoices.set(id, invoice);
 
     // Create invoice items
     for (const item of items) {
       const itemId = this.currentIds.invoiceItem++;
-      const invoiceItem = { ...item, id: itemId, invoiceId: id };
+      const invoiceItem = { 
+        ...item, 
+        id: itemId, 
+        invoiceId: id,
+        price: String(item.price)
+      };
       this.invoiceItems.set(itemId, invoiceItem);
 
       // Update product quantity if it's a product
@@ -226,7 +231,7 @@ export class MemStorage implements IStorage {
 
   async createExpense(insertExpense: InsertExpense): Promise<Expense> {
     const id = this.currentIds.expense++;
-    const expense = { ...insertExpense, id };
+    const expense = { ...insertExpense, id, amount: String(insertExpense.amount) };
     this.expenses.set(id, expense);
     return expense;
   }

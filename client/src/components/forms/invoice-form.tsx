@@ -221,6 +221,7 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
       form.reset();
       setSelectedProducts([]);
       setSelectedServices([]);
+      setShowPreview(false);
     },
     onError: (error) => {
       console.error('Mutation error:', error);
@@ -274,22 +275,22 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
       items: [
         ...selectedProducts.map(product => ({
           productId: product.id,
+          serviceId: null,
           quantity: product.quantity,
           price: product.price,
-          serviceId: null,
           name: product.name,
         })),
         ...selectedServices.map(service => ({
+          productId: null,
           serviceId: service.id,
           quantity: service.quantity,
           price: service.price,
-          productId: null,
           name: service.name,
         }))
       ]
     };
 
-    console.log('Creating invoice with data:', invoiceData);
+    console.log('Sending invoice data:', invoiceData);
     createInvoice.mutate(invoiceData);
   };
 

@@ -68,10 +68,17 @@ export const insertServiceSchema = createInsertSchema(services, {
 
 export const insertInvoiceSchema = createInsertSchema(invoices, {
   total: z.number(),
+  status: z.enum(["pending", "paid", "cancelled"]),
   paymentType: z.enum(["virement", "espece", "cheque", "traite"]),
 });
 
-export const insertInvoiceItemSchema = createInsertSchema(invoiceItems);
+export const insertInvoiceItemSchema = createInsertSchema(invoiceItems, {
+  price: z.number(),
+  quantity: z.number(),
+  productId: z.number().nullable(),
+  serviceId: z.number().nullable(),
+});
+
 export const insertExpenseSchema = createInsertSchema(expenses, {
   amount: z.number(),
 });
