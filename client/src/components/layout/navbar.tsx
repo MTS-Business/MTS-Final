@@ -10,19 +10,23 @@ import {
   Briefcase,
   ChevronLeft,
   ChevronRight,
-  Shield
+  Shield,
+  Kanban,
+  UserCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/inventory", label: "Inventory", icon: Package },
+  { href: "/inventory", label: "Inventaire", icon: Package },
   { href: "/services", label: "Services", icon: Briefcase },
   { href: "/invoices", label: "Factures", icon: FileText },
   { href: "/customers", label: "Clients", icon: Users },
   { href: "/expenses", label: "Dépenses", icon: DollarSign },
   { href: "/sales", label: "Ventes", icon: TrendingUp },
+  { href: "/projects", label: "Projets", icon: Kanban },
+  { href: "/personnel", label: "Personnel", icon: UserCircle },
 ];
 
 const adminItems = [
