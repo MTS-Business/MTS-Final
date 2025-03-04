@@ -10,6 +10,7 @@ import {
 import { Calculator, DollarSign, TrendingUp, TrendingDown, Mail } from "lucide-react";
 import { DashboardCard } from "@/components/layout/dashboard-card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,7 @@ export default function Comptabilite() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [selectedFactures, setSelectedFactures] = useState<number[]>([]);
   const [selectedDepenses, setSelectedDepenses] = useState<number[]>([]);
+  const [accountantEmail, setAccountantEmail] = useState("");
   const [date, setDate] = useState({
     from: new Date(),
     to: addDays(new Date(), 7),
@@ -50,8 +52,11 @@ export default function Comptabilite() {
     setIsConfirmOpen(false);
     toast({
       title: "Documents envoyés",
-      description: `${selectedFactures.length} factures et ${selectedDepenses.length} dépenses ont été envoyées au comptable.`
+      description: `${selectedFactures.length} factures et ${selectedDepenses.length} dépenses ont été envoyées au comptable (${accountantEmail}).`
     });
+    setAccountantEmail("");
+    setSelectedFactures([]);
+    setSelectedDepenses([]);
   };
 
   return (
@@ -77,12 +82,25 @@ export default function Comptabilite() {
           </DialogHeader>
 
           <div className="space-y-6">
-            <div>
-              <Label>Période</Label>
-              <DatePickerWithRange 
-                date={date}
-                setDate={setDate}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="accountant-email" className="text-red-500">Email du comptable *</Label>
+                <Input
+                  id="accountant-email"
+                  type="email"
+                  placeholder="comptable@example.com"
+                  value={accountantEmail}
+                  onChange={(e) => setAccountantEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Période</Label>
+                <DatePickerWithRange 
+                  date={date}
+                  setDate={setDate}
+                />
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -155,7 +173,7 @@ export default function Comptabilite() {
             <Button 
               className="bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
               onClick={handleSendToAccountant}
-              disabled={selectedFactures.length === 0 && selectedDepenses.length === 0}
+              disabled={!accountantEmail || (selectedFactures.length === 0 && selectedDepenses.length === 0)}
             >
               Envoyer les documents sélectionnés
             </Button>
