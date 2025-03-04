@@ -5,18 +5,45 @@ interface DashboardCardProps {
   title: string;
   value: string | number;
   icon: React.ReactNode;
-  className?: string;
+  colorClass?: string;
+  percentage?: {
+    value: number;
+    trend: 'up' | 'down';
+  };
+  subtext?: string;
 }
 
-export function DashboardCard({ title, value, icon, className }: DashboardCardProps) {
+export function DashboardCard({ 
+  title, 
+  value, 
+  icon, 
+  colorClass,
+  percentage,
+  subtext 
+}: DashboardCardProps) {
   return (
-    <Card className={cn("", className)}>
+    <Card className={cn("bg-white", colorClass)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {title}
+        </CardTitle>
         {icon}
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
+        {percentage && (
+          <p className={cn(
+            "text-xs",
+            percentage.trend === 'up' ? "text-green-600" : "text-red-600"
+          )}>
+            {percentage.trend === 'up' ? '↑' : '↓'} {percentage.value}%
+          </p>
+        )}
+        {subtext && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {subtext}
+          </p>
+        )}
       </CardContent>
     </Card>
   );
