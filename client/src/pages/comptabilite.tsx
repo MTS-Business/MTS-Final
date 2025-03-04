@@ -20,23 +20,43 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { DatePickerWithRange } from "@/components/ui/date-picker-with-range"
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { addDays } from "date-fns";
+
+// Données de test
+const factures = [
+  { id: 1, numero: "F2024-001", date: "2024-03-01", montant: 1500.000, client: "Société ABC" },
+  { id: 2, numero: "F2024-002", date: "2024-03-02", montant: 2500.000, client: "Entreprise XYZ" },
+];
+
+const depenses = [
+  { id: 1, numero: "D2024-001", date: "2024-03-01", montant: 500.000, fournisseur: "Fournitures Bureau" },
+  { id: 2, numero: "D2024-002", date: "2024-03-03", montant: 800.000, fournisseur: "Services IT" },
+];
 
 export default function Comptabilite() {
   const { toast } = useToast();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [selectedFactures, setSelectedFactures] = useState<number[]>([]);
+  const [selectedDepenses, setSelectedDepenses] = useState<number[]>([]);
+  const [date, setDate] = useState({
+    from: new Date(),
+    to: addDays(new Date(), 7),
+  });
 
   const handleSendToAccountant = () => {
-    // Simulation d'envoi
     setIsConfirmOpen(false);
     toast({
       title: "Documents envoyés",
-      description: "Les factures et dépenses ont été envoyées au comptable avec succès."
+      description: `${selectedFactures.length} factures et ${selectedDepenses.length} dépenses ont été envoyées au comptable.`
     });
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4">
         <h1 className="text-3xl font-bold">Comptabilité</h1>
         <Button 
           onClick={() => setIsConfirmOpen(true)}
@@ -48,13 +68,86 @@ export default function Comptabilite() {
       </div>
 
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Envoyer au comptable</DialogTitle>
             <DialogDescription>
-              Voulez-vous envoyer toutes les factures et dépenses de la période actuelle au comptable ?
+              Sélectionnez la période et les documents à envoyer au comptable
             </DialogDescription>
           </DialogHeader>
+
+          <div className="space-y-6">
+            <div>
+              <Label>Période</Label>
+              <DatePickerWithRange 
+                date={date}
+                setDate={setDate}
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Factures</h3>
+                <Card className="p-4">
+                  <div className="space-y-2">
+                    {factures.map((facture) => (
+                      <div key={facture.id} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={selectedFactures.includes(facture.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedFactures([...selectedFactures, facture.id]);
+                              } else {
+                                setSelectedFactures(selectedFactures.filter(id => id !== facture.id));
+                              }
+                            }}
+                          />
+                          <span>
+                            {facture.numero} - {facture.client} - {facture.montant.toFixed(3)} DT
+                          </span>
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(facture.date).toLocaleDateString('fr-FR')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Dépenses</h3>
+                <Card className="p-4">
+                  <div className="space-y-2">
+                    {depenses.map((depense) => (
+                      <div key={depense.id} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={selectedDepenses.includes(depense.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedDepenses([...selectedDepenses, depense.id]);
+                              } else {
+                                setSelectedDepenses(selectedDepenses.filter(id => id !== depense.id));
+                              }
+                            }}
+                          />
+                          <span>
+                            {depense.numero} - {depense.fournisseur} - {depense.montant.toFixed(3)} DT
+                          </span>
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(depense.date).toLocaleDateString('fr-FR')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+            </div>
+          </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>
               Annuler
@@ -62,8 +155,9 @@ export default function Comptabilite() {
             <Button 
               className="bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
               onClick={handleSendToAccountant}
+              disabled={selectedFactures.length === 0 && selectedDepenses.length === 0}
             >
-              Confirmer l'envoi
+              Envoyer les documents sélectionnés
             </Button>
           </DialogFooter>
         </DialogContent>
