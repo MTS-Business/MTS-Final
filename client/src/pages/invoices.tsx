@@ -122,14 +122,14 @@ export default function Invoices() {
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button onClick={handleOpenNewInvoice}>
+              <Button onClick={handleOpenNewInvoice} className="bg-[#5FBFF9] text-white hover:bg-[#5FBFF9]/90">
                 <Plus className="mr-2 h-4 w-4" />
                 Nouvelle Facture
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
-              <InvoiceForm 
-                onSuccess={() => setOpen(false)} 
+              <InvoiceForm
+                onSuccess={() => setOpen(false)}
                 stampDuty={Number(stampDuty)}
                 vat={Number(vat)}
                 editingInvoice={selectedInvoice}
@@ -156,13 +156,13 @@ export default function Invoices() {
               <TableRow key={invoice.id}>
                 <TableCell>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => handlePreview(invoice)}>
+                    <Button variant="ghost" size="sm" className="text-[#5FBFF9]" onClick={() => handlePreview(invoice)}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(invoice)}>
+                    <Button variant="ghost" size="sm" className="text-[#5FBFF9]" onClick={() => handleEdit(invoice)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handlePrint(invoice)}>
+                    <Button variant="ghost" size="sm" className="text-[#5FBFF9]" onClick={() => handlePrint(invoice)}>
                       <Printer className="h-4 w-4" />
                     </Button>
                   </div>
