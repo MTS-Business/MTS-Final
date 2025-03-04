@@ -130,6 +130,39 @@ export class MemStorage implements IStorage {
       description: "Contrat de maintenance informatique annuel",
       price: "599.99"
     });
+
+    // Add initial invoice
+    const initialInvoice: Invoice = {
+      id: 1,
+      customerId: 1,
+      date: new Date().toISOString(),
+      total: "2099.97",
+      status: "pending",
+      paymentType: "virement"
+    };
+    this.invoices.set(1, initialInvoice);
+
+    // Add initial invoice items
+    this.invoiceItems.set(1, {
+      id: 1,
+      invoiceId: 1,
+      productId: 1,
+      serviceId: null,
+      quantity: 1,
+      price: "1299.99"
+    });
+    this.invoiceItems.set(2, {
+      id: 2,
+      invoiceId: 1,
+      productId: null,
+      serviceId: 1,
+      quantity: 1,
+      price: "99.99"
+    });
+
+    // Update current IDs
+    this.currentIds.invoice = 2;
+    this.currentIds.invoiceItem = 3;
   }
 
   async getCustomers(): Promise<Customer[]> {
