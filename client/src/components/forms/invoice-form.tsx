@@ -52,12 +52,22 @@ interface SelectedProduct {
   quantity: number;
 }
 
+interface SelectedService {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
 export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormProps) {
   const { toast } = useToast();
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
+  const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
   const [temporaryQuantities, setTemporaryQuantities] = useState<Record<number, number>>({});
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([]);
 
   const form = useForm({
     resolver: zodResolver(insertInvoiceSchema),
@@ -78,10 +88,18 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
     queryKey: ["/api/products"],
   });
 
+  const { data: services } = useQuery({
+    queryKey: ["/api/services"],
+  });
+
   const calculateSubTotal = () => {
-    return selectedProducts.reduce((total, product) => {
+    const productsTotal = selectedProducts.reduce((total, product) => {
       return total + (product.price * product.quantity);
     }, 0);
+    const servicesTotal = selectedServices.reduce((total, service) => {
+      return total + (service.price * service.quantity);
+    }, 0);
+    return productsTotal + servicesTotal;
   };
 
   const calculateTotal = () => {
@@ -93,7 +111,7 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
   useEffect(() => {
     const total = calculateTotal();
     form.setValue("total", total);
-  }, [selectedProducts, vat, stampDuty]);
+  }, [selectedProducts, selectedServices, vat, stampDuty]);
 
   const handleProductSelection = (productId: number, checked: boolean) => {
     if (checked) {
@@ -107,10 +125,22 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
     }
   };
 
-  const handleQuantityChange = (productId: number, quantity: number) => {
+  const handleServiceSelection = (serviceId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedServiceIds([...selectedServiceIds, serviceId]);
+      setTemporaryQuantities({ ...temporaryQuantities, [serviceId]: 1 });
+    } else {
+      setSelectedServiceIds(selectedServiceIds.filter(id => id !== serviceId));
+      const newQuantities = { ...temporaryQuantities };
+      delete newQuantities[serviceId];
+      setTemporaryQuantities(newQuantities);
+    }
+  };
+
+  const handleQuantityChange = (itemId: number, quantity: number) => {
     setTemporaryQuantities({
       ...temporaryQuantities,
-      [productId]: quantity
+      [itemId]: quantity
     });
   };
 
@@ -134,8 +164,32 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
     setTemporaryQuantities({});
   };
 
+  const handleServiceDialogConfirm = () => {
+    const newSelectedServices = selectedServiceIds
+      .map(id => {
+        const service = services?.find((s: any) => s.id === id);
+        if (!service) return null;
+        return {
+          id: service.id,
+          name: service.name,
+          price: Number(service.price),
+          quantity: temporaryQuantities[service.id] || 1
+        };
+      })
+      .filter((s): s is SelectedService => s !== null);
+
+    setSelectedServices([...selectedServices, ...newSelectedServices]);
+    setIsServiceDialogOpen(false);
+    setSelectedServiceIds([]);
+    setTemporaryQuantities({});
+  };
+
   const removeProduct = (productId: number) => {
     setSelectedProducts(selectedProducts.filter(p => p.id !== productId));
+  };
+
+  const removeService = (serviceId: number) => {
+    setSelectedServices(selectedServices.filter(s => s.id !== serviceId));
   };
 
   const createInvoice = useMutation({
@@ -145,11 +199,18 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
           ...data,
           total: calculateTotal(),
         },
-        items: selectedProducts.map(product => ({
-          productId: product.id,
-          quantity: product.quantity,
-          price: product.price
-        }))
+        items: [
+          ...selectedProducts.map(product => ({
+            productId: product.id,
+            quantity: product.quantity,
+            price: product.price
+          })),
+          ...selectedServices.map(service => ({
+            serviceId: service.id,
+            quantity: service.quantity,
+            price: service.price
+          }))
+        ]
       };
 
       const res = await fetch("/api/invoices", {
@@ -171,10 +232,10 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
   });
 
   const onSubmit = (data: any) => {
-    if (selectedProducts.length === 0) {
+    if (selectedProducts.length === 0 && selectedServices.length === 0) {
       toast({
         title: "Erreur",
-        description: "Veuillez sélectionner au moins un produit",
+        description: "Veuillez sélectionner au moins un produit ou un service",
         variant: "destructive"
       });
       return;
@@ -300,31 +361,140 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
                 </div>
               </DialogContent>
             </Dialog>
+          </div>
 
-            <div className="space-y-2 max-h-[30vh] overflow-y-auto border rounded-lg p-4">
-              {selectedProducts.map(product => (
-                <div key={product.id} className="flex items-center justify-between p-2 border rounded">
-                  <div className="flex-1">
-                    <div className="font-medium">{product.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {product.quantity} x {Number(product.price).toFixed(2)} €
-                    </div>
-                  </div>
-                  <div className="text-right font-medium">
-                    {(product.price * product.quantity).toFixed(2)} €
-                  </div>
+          <div className="space-y-2">
+            <FormLabel>Services</FormLabel>
+            <Dialog open={isServiceDialogOpen} onOpenChange={setIsServiceDialogOpen}>
+              <DialogTrigger asChild>
+                <Button type="button" className="w-full">
+                  Sélectionner des services
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                  <DialogTitle>Sélectionner les services</DialogTitle>
+                </DialogHeader>
+                <div className="max-h-[60vh] overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12"></TableHead>
+                        <TableHead>Nom</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-right">Prix</TableHead>
+                        <TableHead className="text-right w-32">Quantité</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {services?.map((service: any) => (
+                        <TableRow key={service.id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedServiceIds.includes(service.id)}
+                              onCheckedChange={(checked) =>
+                                handleServiceSelection(service.id, checked as boolean)
+                              }
+                              disabled={selectedServices.some(s => s.id === service.id)}
+                            />
+                          </TableCell>
+                          <TableCell>{service.name}</TableCell>
+                          <TableCell>{service.description}</TableCell>
+                          <TableCell className="text-right">
+                            {Number(service.price).toFixed(2)} €
+                          </TableCell>
+                          <TableCell>
+                            {selectedServiceIds.includes(service.id) && (
+                              <Input
+                                type="number"
+                                min="1"
+                                value={temporaryQuantities[service.id] || 1}
+                                onChange={(e) => handleQuantityChange(service.id, Number(e.target.value))}
+                                className="w-24"
+                              />
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="flex justify-end gap-2 mt-4">
                   <Button
                     type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeProduct(product.id)}
-                    className="ml-2"
+                    variant="outline"
+                    onClick={() => setIsServiceDialogOpen(false)}
                   >
-                    ×
+                    Annuler
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleServiceDialogConfirm}
+                    disabled={selectedServiceIds.length === 0}
+                  >
+                    Valider
                   </Button>
                 </div>
-              ))}
-            </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div className="space-y-2 max-h-[30vh] overflow-y-auto border rounded-lg p-4">
+            {selectedProducts.length > 0 && (
+              <>
+                <div className="font-medium mb-2">Produits sélectionnés:</div>
+                {selectedProducts.map(product => (
+                  <div key={product.id} className="flex items-center justify-between p-2 border rounded">
+                    <div className="flex-1">
+                      <div className="font-medium">{product.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {product.quantity} x {Number(product.price).toFixed(2)} €
+                      </div>
+                    </div>
+                    <div className="text-right font-medium">
+                      {(product.price * product.quantity).toFixed(2)} €
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeProduct(product.id)}
+                      className="ml-2"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {selectedServices.length > 0 && (
+              <>
+                <div className="font-medium mb-2">Services sélectionnés:</div>
+                {selectedServices.map(service => (
+                  <div key={service.id} className="flex items-center justify-between p-2 border rounded">
+                    <div className="flex-1">
+                      <div className="font-medium">{service.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {service.quantity} x {Number(service.price).toFixed(2)} €
+                      </div>
+                    </div>
+                    <div className="text-right font-medium">
+                      {(service.price * service.quantity).toFixed(2)} €
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeService(service.id)}
+                      className="ml-2"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
 
           <div className="space-y-2 border-t pt-4">
