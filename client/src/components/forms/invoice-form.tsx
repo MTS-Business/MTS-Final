@@ -238,9 +238,45 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice 
     setSelectedServices(selectedServices.filter(s => s.id !== serviceId));
   };
 
+  const handleValidateInvoice = () => {
+    if (!previewData) return;
+
+    const formData = form.getValues();
+
+    const invoiceData = {
+      invoice: {
+        customerId: Number(formData.customerId),
+        date: formData.date,
+        status: formData.status,
+        paymentType: formData.paymentType,
+        total: calculateTotal(),
+      },
+      items: [
+        ...selectedProducts.map(product => ({
+          productId: product.id,
+          serviceId: null,
+          quantity: product.quantity,
+          price: product.price,
+          name: product.name,
+        })),
+        ...selectedServices.map(service => ({
+          productId: null,
+          serviceId: service.id,
+          quantity: service.quantity,
+          price: service.price,
+          name: service.name,
+        }))
+      ]
+    };
+
+    console.log('Sending invoice data:', JSON.stringify(invoiceData, null, 2));
+    createInvoice.mutate(invoiceData);
+  };
+
   const createInvoice = useMutation({
     mutationFn: async (data: any) => {
       try {
+        console.log('Mutation data:', JSON.stringify(data, null, 2));
         const res = await fetch("/api/invoices", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -305,41 +341,6 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice 
       ],
     });
     setShowPreview(true);
-  };
-
-  const handleValidateInvoice = () => {
-    if (!previewData) return;
-
-    const formData = form.getValues();
-
-    const invoiceData = {
-      invoice: {
-        customerId: Number(formData.customerId),
-        date: formData.date,
-        status: formData.status,
-        paymentType: formData.paymentType,
-        total: calculateTotal(),
-      },
-      items: [
-        ...selectedProducts.map(product => ({
-          productId: product.id,
-          serviceId: null,
-          quantity: product.quantity,
-          price: product.price,
-          name: product.name,
-        })),
-        ...selectedServices.map(service => ({
-          productId: null,
-          serviceId: service.id,
-          quantity: service.quantity,
-          price: service.price,
-          name: service.name,
-        }))
-      ]
-    };
-
-    console.log('Sending invoice data:', JSON.stringify(invoiceData, null, 2));
-    createInvoice.mutate(invoiceData);
   };
 
   return (

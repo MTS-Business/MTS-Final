@@ -61,6 +61,11 @@ export async function registerRoutes(app: Express) {
       console.log('Received invoice data:', JSON.stringify(req.body, null, 2));
       const { invoice, items } = req.body;
 
+      if (!invoice || !items || !Array.isArray(items)) {
+        res.status(400).json({ error: "Invalid invoice data format" });
+        return;
+      }
+
       // Validate invoice data
       const validatedInvoice = insertInvoiceSchema.parse({
         ...invoice,
@@ -79,8 +84,8 @@ export async function registerRoutes(app: Express) {
         })
       );
 
-      console.log('Validated invoice:', validatedInvoice);
-      console.log('Validated items:', validatedItems);
+      console.log('Validated invoice:', JSON.stringify(validatedInvoice, null, 2));
+      console.log('Validated items:', JSON.stringify(validatedItems, null, 2));
 
       const newInvoice = await storage.createInvoice(validatedInvoice, validatedItems);
       res.json(newInvoice);
