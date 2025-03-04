@@ -54,13 +54,82 @@ export class MemStorage implements IStorage {
     this.invoiceItems = new Map();
     this.expenses = new Map();
     this.currentIds = {
-      customer: 1,
-      product: 1,
-      service: 1,
+      customer: 4, // Start after initial data
+      product: 4,
+      service: 4,
       invoice: 1,
       invoiceItem: 1,
       expense: 1
     };
+
+    // Add initial customers
+    this.customers.set(1, {
+      id: 1,
+      name: "Société ABC",
+      email: "contact@abc.com",
+      phone: "0123456789",
+      address: "123 Rue Principale, 75001 Paris",
+      fiscalNumber: "FR123456789"
+    });
+    this.customers.set(2, {
+      id: 2,
+      name: "Enterprise XYZ",
+      email: "info@xyz.com",
+      phone: "0987654321",
+      address: "456 Avenue des Affaires, 69001 Lyon",
+      fiscalNumber: "FR987654321"
+    });
+    this.customers.set(3, {
+      id: 3,
+      name: "Compagnie 123",
+      email: "contact@123.com",
+      phone: "0567891234",
+      address: "789 Boulevard du Commerce, 31000 Toulouse",
+      fiscalNumber: "FR567891234"
+    });
+
+    // Add initial products
+    this.products.set(1, {
+      id: 1,
+      name: "Ordinateur portable Pro",
+      description: "Ordinateur portable haute performance pour professionnels",
+      price: "1299.99",
+      quantity: 10
+    });
+    this.products.set(2, {
+      id: 2,
+      name: "Écran 27 pouces 4K",
+      description: "Écran professionnel haute résolution",
+      price: "499.99",
+      quantity: 15
+    });
+    this.products.set(3, {
+      id: 3,
+      name: "Clavier mécanique",
+      description: "Clavier mécanique rétroéclairé",
+      price: "129.99",
+      quantity: 20
+    });
+
+    // Add initial services
+    this.services.set(1, {
+      id: 1,
+      name: "Installation Windows",
+      description: "Installation et configuration complète de Windows",
+      price: "99.99"
+    });
+    this.services.set(2, {
+      id: 2,
+      name: "Formation bureautique",
+      description: "Formation sur les outils de bureautique (4h)",
+      price: "299.99"
+    });
+    this.services.set(3, {
+      id: 3,
+      name: "Maintenance annuelle",
+      description: "Contrat de maintenance informatique annuel",
+      price: "599.99"
+    });
   }
 
   async getCustomers(): Promise<Customer[]> {

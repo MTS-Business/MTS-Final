@@ -197,38 +197,10 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
 
   const createInvoice = useMutation({
     mutationFn: async (data: any) => {
-      const invoiceData = {
-        invoice: {
-          customerId: Number(data.customerId),
-          date: data.date,
-          status: data.status,
-          paymentType: data.paymentType,
-          total: calculateTotal(),
-        },
-        items: [
-          ...selectedProducts.map(product => ({
-            productId: product.id,
-            quantity: product.quantity,
-            price: product.price,
-            serviceId: null,
-            name: product.name,
-          })),
-          ...selectedServices.map(service => ({
-            serviceId: service.id,
-            quantity: service.quantity,
-            price: service.price,
-            productId: null,
-            name: service.name,
-          }))
-        ]
-      };
-
-      console.log('Creating invoice with data:', invoiceData);
-
       const res = await fetch("/api/invoices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(invoiceData),
+        body: JSON.stringify(data),
       });
 
       if (!res.ok) {
@@ -272,10 +244,6 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
 
     const customer = customers?.find((c: any) => c.id === Number(data.customerId));
 
-    console.log('Form submitted with data:', data);
-    console.log('Selected products:', selectedProducts);
-    console.log('Selected services:', selectedServices);
-
     setPreviewData({
       invoice: {
         ...data,
@@ -294,8 +262,35 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
     if (!previewData) return;
 
     const formData = form.getValues();
-    console.log('Validating invoice with form data:', formData);
-    createInvoice.mutate(formData);
+
+    const invoiceData = {
+      invoice: {
+        customerId: Number(formData.customerId),
+        date: formData.date,
+        status: formData.status,
+        paymentType: formData.paymentType,
+        total: calculateTotal(),
+      },
+      items: [
+        ...selectedProducts.map(product => ({
+          productId: product.id,
+          quantity: product.quantity,
+          price: product.price,
+          serviceId: null,
+          name: product.name,
+        })),
+        ...selectedServices.map(service => ({
+          serviceId: service.id,
+          quantity: service.quantity,
+          price: service.price,
+          productId: null,
+          name: service.name,
+        }))
+      ]
+    };
+
+    console.log('Creating invoice with data:', invoiceData);
+    createInvoice.mutate(invoiceData);
   };
 
   return (
