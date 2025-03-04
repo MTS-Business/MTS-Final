@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Shield,
   Kanban,
-  UserCircle
+  UserCircle,
+  Calculator
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -31,6 +32,7 @@ const navItems = [
 
 const adminItems = [
   { href: "/admin", label: "Administration", icon: Shield },
+  { href: "/comptabilite", label: "Comptabilité", icon: Calculator },
 ];
 
 interface NavbarProps {

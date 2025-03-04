@@ -17,6 +17,7 @@ import Profile from "@/pages/profile";
 import Admin from "@/pages/admin";
 import Projects from "@/pages/projects";
 import Personnel from "@/pages/personnel";
+import Comptabilite from "@/pages/comptabilite";
 import NotFound from "@/pages/not-found";
 import { useState } from "react";
 
@@ -42,6 +43,7 @@ function Router() {
             <Route path="/admin" component={Admin} />
             <Route path="/projects" component={Projects} />
             <Route path="/personnel" component={Personnel} />
+            <Route path="/comptabilite" component={Comptabilite} />
             <Route component={NotFound} />
           </Switch>
         </div>
