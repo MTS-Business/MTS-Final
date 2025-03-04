@@ -15,18 +15,26 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit } from "lucide-react";
+import { Plus, Edit, Eye } from "lucide-react";
 import { format } from "date-fns";
 import InvoiceForm from "@/components/forms/invoice-form";
+import InvoicePreview from "@/components/invoice-preview";
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 
 export default function Invoices() {
   const [open, setOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [stampDuty, setStampDuty] = useState("1");
   const [vat, setVat] = useState("19");
+
   const { data: invoices, isLoading } = useQuery({
     queryKey: ["/api/invoices"],
+  });
+
+  const { data: customers } = useQuery({
+    queryKey: ["/api/customers"],
   });
 
   if (isLoading) {
@@ -44,6 +52,34 @@ export default function Invoices() {
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const handlePreview = async (invoice: any) => {
+    const customer = customers?.find((c: any) => c.id === invoice.customerId);
+    const res = await fetch(`/api/invoices/${invoice.id}`);
+    const data = await res.json();
+
+    setSelectedInvoice({
+      invoice: data,
+      customer,
+      items: data.items
+    });
+    setPreviewOpen(true);
+  };
+
+  const handleEdit = async (invoice: any) => {
+    const res = await fetch(`/api/invoices/${invoice.id}`);
+    const data = await res.json();
+    const customer = customers?.find((c: any) => c.id === invoice.customerId);
+
+    const editingData = {
+      ...data,
+      customer,
+      items: data.items
+    };
+
+    setSelectedInvoice(editingData);
+    setOpen(true);
   };
 
   return (
@@ -83,6 +119,7 @@ export default function Invoices() {
                 onSuccess={() => setOpen(false)} 
                 stampDuty={Number(stampDuty)}
                 vat={Number(vat)}
+                editingInvoice={selectedInvoice}
               />
             </DialogContent>
           </Dialog>
@@ -105,9 +142,14 @@ export default function Invoices() {
             {invoices?.map((invoice: any) => (
               <TableRow key={invoice.id}>
                 <TableCell>
-                  <Button variant="ghost" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => handlePreview(invoice)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(invoice)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
                 <TableCell className="font-medium">FAC-{invoice.id}</TableCell>
                 <TableCell>
@@ -132,6 +174,18 @@ export default function Invoices() {
           </TableBody>
         </Table>
       </Card>
+
+      {selectedInvoice && (
+        <InvoicePreview
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          invoice={selectedInvoice.invoice}
+          customer={selectedInvoice.customer}
+          items={selectedInvoice.items}
+          onValidate={() => setPreviewOpen(false)}
+          onCancel={() => setPreviewOpen(false)}
+        />
+      )}
     </div>
   );
 }

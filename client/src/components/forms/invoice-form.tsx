@@ -44,6 +44,7 @@ interface InvoiceFormProps {
   onSuccess?: () => void;
   stampDuty: number;
   vat: number;
+  editingInvoice?: any;
 }
 
 interface SelectedProduct {
@@ -60,7 +61,7 @@ interface SelectedService {
   quantity: number;
 }
 
-export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormProps) {
+export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice }: InvoiceFormProps) {
   const { toast } = useToast();
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
@@ -75,11 +76,11 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
   const form = useForm({
     resolver: zodResolver(insertInvoiceSchema),
     defaultValues: {
-      customerId: undefined,
-      date: new Date().toISOString(),
-      total: 0,
-      status: "pending",
-      paymentType: "espece",
+      customerId: editingInvoice?.customerId || undefined,
+      date: editingInvoice?.date || new Date().toISOString(),
+      total: editingInvoice?.total || 0,
+      status: editingInvoice?.status || "pending",
+      paymentType: editingInvoice?.paymentType || "espece",
     },
   });
 
@@ -115,6 +116,30 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
     const total = calculateTotal();
     form.setValue("total", total);
   }, [selectedProducts, selectedServices, vat, stampDuty]);
+
+  // Load existing invoice items if editing
+  useEffect(() => {
+    if (editingInvoice && editingInvoice.items) {
+      const products = editingInvoice.items
+        .filter((item: any) => item.productId)
+        .map((item: any) => ({
+          id: item.productId,
+          name: item.name,
+          price: Number(item.price),
+          quantity: item.quantity
+        }));
+      const services = editingInvoice.items
+        .filter((item: any) => item.serviceId)
+        .map((item: any) => ({
+          id: item.serviceId,
+          name: item.name,
+          price: Number(item.price),
+          quantity: item.quantity
+        }));
+      setSelectedProducts(products);
+      setSelectedServices(services);
+    }
+  }, [editingInvoice]);
 
   const handleProductSelection = (productId: number, checked: boolean) => {
     if (checked) {
@@ -290,14 +315,16 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
       ]
     };
 
-    console.log('Sending invoice data:', invoiceData);
+    console.log('Sending invoice data:', JSON.stringify(invoiceData, null, 2));
     createInvoice.mutate(invoiceData);
   };
 
   return (
     <div className="space-y-4 max-h-[80vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Nouvelle Facture</DialogTitle>
+        <DialogTitle>
+          {editingInvoice ? "Modifier la facture" : "Nouvelle Facture"}
+        </DialogTitle>
       </DialogHeader>
 
       <Form {...form}>
@@ -621,7 +648,7 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
           />
 
           <Button type="submit" className="w-full">
-            Créer la facture
+            {editingInvoice ? "Modifier la facture" : "Créer la facture"}
           </Button>
         </form>
       </Form>
