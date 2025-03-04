@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, MessageSquare, Settings, User, LogOut } from "lucide-react";
+import { useLocation } from "wouter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,8 @@ interface HeaderProps {
 }
 
 export default function Header({ userName = "John Cena" }: HeaderProps) {
+  const [, setLocation] = useLocation();
+
   return (
     <div className="flex items-center justify-between px-8 py-4 border-b">
       <div className="flex items-center gap-4">
@@ -33,7 +36,10 @@ export default function Header({ userName = "John Cena" }: HeaderProps) {
         </div>
       </div>
       <div className="flex items-center gap-4">
-        <button className="relative p-2 rounded-full hover:bg-accent/10">
+        <button 
+          className="relative p-2 rounded-full hover:bg-accent/10"
+          onClick={() => setLocation('/messages')}
+        >
           <MessageSquare className="h-5 w-5 text-muted-foreground" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
         </button>
