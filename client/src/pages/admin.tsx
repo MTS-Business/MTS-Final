@@ -30,7 +30,7 @@ import { Plus, Edit, Trash, Lock } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
-const users = [
+const initialUsers = [
   {
     id: 1,
     name: "John Cena",
@@ -74,6 +74,7 @@ export default function Admin() {
   const [isAccessOpen, setIsAccessOpen] = useState(false);
   const [selectedPages, setSelectedPages] = useState<string[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [users, setUsers] = useState(initialUsers);
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
@@ -82,6 +83,19 @@ export default function Admin() {
   });
 
   const handleCreateUser = () => {
+    // Créer un nouvel utilisateur avec un ID unique
+    const newUserData = {
+      id: users.length + 1,
+      name: newUser.name,
+      email: newUser.email,
+      role: roles.find(r => r.id === newUser.role)?.label || "Utilisateur",
+      avatar: "/avatar.png", // Avatar par défaut
+      status: "active"
+    };
+
+    // Ajouter le nouvel utilisateur à la liste
+    setUsers([...users, newUserData]);
+
     toast({
       title: "Utilisateur créé",
       description: `Le nouvel utilisateur ${newUser.name} a été créé avec succès.`
@@ -91,6 +105,7 @@ export default function Admin() {
   };
 
   const handleDeleteUser = (userId: number) => {
+    setUsers(users.filter(user => user.id !== userId));
     toast({
       title: "Utilisateur supprimé",
       description: "L'utilisateur a été supprimé avec succès."
