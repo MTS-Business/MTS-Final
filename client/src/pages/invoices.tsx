@@ -90,6 +90,11 @@ export default function Invoices() {
     }, 1000);
   };
 
+  const handleOpenNewInvoice = () => {
+    setSelectedInvoice(null);
+    setOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -117,7 +122,7 @@ export default function Invoices() {
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={handleOpenNewInvoice}>
                 <Plus className="mr-2 h-4 w-4" />
                 Nouvelle Facture
               </Button>

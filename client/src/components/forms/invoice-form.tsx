@@ -84,6 +84,46 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice 
     },
   });
 
+  // Réinitialiser le formulaire quand editingInvoice change
+  useEffect(() => {
+    if (!editingInvoice) {
+      form.reset({
+        customerId: undefined,
+        date: new Date().toISOString(),
+        total: 0,
+        status: "pending",
+        paymentType: "espece",
+      });
+      setSelectedProducts([]);
+      setSelectedServices([]);
+      setPreviewData(null);
+    }
+  }, [editingInvoice]);
+
+  // Charger les éléments de la facture si on est en mode édition
+  useEffect(() => {
+    if (editingInvoice && editingInvoice.items) {
+      const products = editingInvoice.items
+        .filter((item: any) => item.productId)
+        .map((item: any) => ({
+          id: item.productId,
+          name: item.name,
+          price: Number(item.price),
+          quantity: item.quantity
+        }));
+      const services = editingInvoice.items
+        .filter((item: any) => item.serviceId)
+        .map((item: any) => ({
+          id: item.serviceId,
+          name: item.name,
+          price: Number(item.price),
+          quantity: item.quantity
+        }));
+      setSelectedProducts(products);
+      setSelectedServices(services);
+    }
+  }, [editingInvoice]);
+
   const { data: customers } = useQuery({
     queryKey: ["/api/customers"],
   });
@@ -117,29 +157,6 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice 
     form.setValue("total", total);
   }, [selectedProducts, selectedServices, vat, stampDuty]);
 
-  // Load existing invoice items if editing
-  useEffect(() => {
-    if (editingInvoice && editingInvoice.items) {
-      const products = editingInvoice.items
-        .filter((item: any) => item.productId)
-        .map((item: any) => ({
-          id: item.productId,
-          name: item.name,
-          price: Number(item.price),
-          quantity: item.quantity
-        }));
-      const services = editingInvoice.items
-        .filter((item: any) => item.serviceId)
-        .map((item: any) => ({
-          id: item.serviceId,
-          name: item.name,
-          price: Number(item.price),
-          quantity: item.quantity
-        }));
-      setSelectedProducts(products);
-      setSelectedServices(services);
-    }
-  }, [editingInvoice]);
 
   const handleProductSelection = (productId: number, checked: boolean) => {
     if (checked) {
