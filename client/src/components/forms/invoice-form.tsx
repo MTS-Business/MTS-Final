@@ -196,29 +196,42 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
     mutationFn: async (data: any) => {
       const invoiceData = {
         invoice: {
-          ...data,
+          customerId: Number(data.customerId),
+          date: data.date,
+          status: data.status,
+          paymentType: data.paymentType,
           total: calculateTotal(),
         },
         items: [
           ...selectedProducts.map(product => ({
             productId: product.id,
             quantity: product.quantity,
-            price: product.price
+            price: product.price,
+            serviceId: null
           })),
           ...selectedServices.map(service => ({
             serviceId: service.id,
             quantity: service.quantity,
-            price: service.price
+            price: service.price,
+            productId: null
           }))
         ]
       };
+
+      console.log('Sending invoice data:', invoiceData);
 
       const res = await fetch("/api/invoices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(invoiceData),
       });
-      if (!res.ok) throw new Error("Failed to create invoice");
+
+      if (!res.ok) {
+        const error = await res.text();
+        console.error('Failed to create invoice:', error);
+        throw new Error("Failed to create invoice");
+      }
+
       return res.json();
     },
     onSuccess: () => {
@@ -228,7 +241,18 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
         description: "La facture a été créée avec succès",
       });
       onSuccess?.();
+      form.reset();
+      setSelectedProducts([]);
+      setSelectedServices([]);
     },
+    onError: (error) => {
+      console.error('Mutation error:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la création de la facture",
+        variant: "destructive"
+      });
+    }
   });
 
   const onSubmit = (data: any) => {
