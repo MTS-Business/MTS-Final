@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, MessageSquare, Settings, User, LogOut } from "lucide-react";
 import { useLocation } from "wouter";
+import { useUser } from "@/context/user-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,23 +9,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface HeaderProps {
-  userName?: string;
-}
-
-export default function Header({ userName = "John Cena" }: HeaderProps) {
+export default function Header() {
   const [, setLocation] = useLocation();
+  const { userInfo } = useUser();
 
   return (
     <div className="flex items-center justify-between px-8 py-4 border-b">
       <div className="flex items-center gap-4">
         <Avatar className="w-10 h-10">
-          <AvatarImage src="/avatar.png" />
-          <AvatarFallback>JC</AvatarFallback>
+          <AvatarImage src={userInfo.avatar} />
+          <AvatarFallback>
+            {userInfo.name.split(' ').map(n => n[0]).join('')}
+          </AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
           <h2 className="text-lg font-semibold text-foreground">
-            Hello, {userName} 👋
+            Hello, {userInfo.name} 👋
           </h2>
           <p className="text-sm text-muted-foreground">
             {new Date().toLocaleDateString('fr-FR', {
@@ -50,8 +50,10 @@ export default function Header({ userName = "John Cena" }: HeaderProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Avatar className="cursor-pointer">
-              <AvatarImage src="/avatar.png" />
-              <AvatarFallback>JC</AvatarFallback>
+              <AvatarImage src={userInfo.avatar} />
+              <AvatarFallback>
+                {userInfo.name.split(' ').map(n => n[0]).join('')}
+              </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

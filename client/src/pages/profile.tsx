@@ -5,23 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Camera, Mail, UserCircle, Bell, Lock, Save } from "lucide-react";
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/context/user-context";
 
 export default function Profile() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [userInfo, setUserInfo] = useState({
-    name: "John Cena",
-    email: "john.cena@example.com",
-    role: "Administrateur",
-    avatar: "/avatar.png",
-    notifications: {
-      email: true,
-      push: true,
-      messages: true
-    }
-  });
+  const { userInfo, updateUserInfo } = useUser();
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -30,9 +21,8 @@ export default function Profile() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Simuler le changement d'avatar avec un URL temporaire
       const tempUrl = URL.createObjectURL(file);
-      setUserInfo({ ...userInfo, avatar: tempUrl });
+      updateUserInfo({ avatar: tempUrl });
       toast({
         title: "Photo de profil mise à jour",
         description: "Votre photo de profil a été changée avec succès."
@@ -41,7 +31,6 @@ export default function Profile() {
   };
 
   const handleSaveChanges = () => {
-    // Simuler la sauvegarde
     toast({
       title: "Modifications enregistrées",
       description: "Vos modifications ont été enregistrées avec succès."
@@ -59,7 +48,9 @@ export default function Profile() {
             <div className="relative">
               <Avatar className="w-24 h-24">
                 <AvatarImage src={userInfo.avatar} />
-                <AvatarFallback>JC</AvatarFallback>
+                <AvatarFallback>
+                  {userInfo.name.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
               </Avatar>
               <button 
                 onClick={handleAvatarClick}
@@ -84,7 +75,7 @@ export default function Profile() {
                 <Input
                   id="name"
                   value={userInfo.name}
-                  onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
+                  onChange={(e) => updateUserInfo({ name: e.target.value })}
                 />
                 <Button variant="outline" size="icon">
                   <UserCircle className="h-4 w-4" />
@@ -99,7 +90,7 @@ export default function Profile() {
                   id="email"
                   type="email"
                   value={userInfo.email}
-                  onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
+                  onChange={(e) => updateUserInfo({ email: e.target.value })}
                 />
                 <Button variant="outline" size="icon">
                   <Mail className="h-4 w-4" />
@@ -141,8 +132,7 @@ export default function Profile() {
                 <Switch
                   checked={userInfo.notifications.email}
                   onCheckedChange={(checked) =>
-                    setUserInfo({
-                      ...userInfo,
+                    updateUserInfo({
                       notifications: { ...userInfo.notifications, email: checked }
                     })
                   }
@@ -159,8 +149,7 @@ export default function Profile() {
                 <Switch
                   checked={userInfo.notifications.push}
                   onCheckedChange={(checked) =>
-                    setUserInfo({
-                      ...userInfo,
+                    updateUserInfo({
                       notifications: { ...userInfo.notifications, push: checked }
                     })
                   }
@@ -177,8 +166,7 @@ export default function Profile() {
                 <Switch
                   checked={userInfo.notifications.messages}
                   onCheckedChange={(checked) =>
-                    setUserInfo({
-                      ...userInfo,
+                    updateUserInfo({
                       notifications: { ...userInfo.notifications, messages: checked }
                     })
                   }
