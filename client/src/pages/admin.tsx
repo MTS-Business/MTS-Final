@@ -111,6 +111,16 @@ export default function Admin() {
     setIsAccessOpen(false);
   };
 
+  // Divise les pages en groupes de 4
+  const pageGroups = pages.reduce((acc: any[], page, index) => {
+    const groupIndex = Math.floor(index / 4);
+    if (!acc[groupIndex]) {
+      acc[groupIndex] = [];
+    }
+    acc[groupIndex].push(page);
+    return acc;
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -191,19 +201,13 @@ export default function Admin() {
           </DialogHeader>
           <div className="space-y-4">
             <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Page</TableHead>
-                    <TableHead>Accès</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pages.map((page) => (
-                    <TableRow key={page.id}>
-                      <TableCell>{page.label}</TableCell>
-                      <TableCell>
+              <div className="p-4">
+                {pageGroups.map((group, groupIndex) => (
+                  <div key={groupIndex} className="flex mb-4">
+                    {group.map((page) => (
+                      <div key={page.id} className="flex items-center w-1/4 space-x-2">
                         <Checkbox
+                          id={page.id}
                           checked={selectedPages.includes(page.path)}
                           onCheckedChange={(checked) => {
                             if (checked) {
@@ -213,11 +217,12 @@ export default function Admin() {
                             }
                           }}
                         />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        <Label htmlFor={page.id}>{page.label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </Card>
             <Button
               className="w-full bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
