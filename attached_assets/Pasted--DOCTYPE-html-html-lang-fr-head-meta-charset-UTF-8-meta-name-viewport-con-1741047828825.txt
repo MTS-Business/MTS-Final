@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facture N° {{ facture.numero }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #000; color: #fff; padding: 10px; text-align: center; }
+        .container { width: 80%; margin: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>FACTURE</h1>
+    </div>
+
+    <div class="container">
+        <p><strong>Date :</strong> {{ facture.date }}</p>
+        <p><strong>Échéance :</strong> {{ facture.echeance }}</p>
+        <p><strong>Facture N° :</strong> {{ facture.numero }}</p>
+
+        <h3>ÉMETTEUR :</h3>
+        <p>{{ emetteur.nom }}<br>
+        {{ emetteur.email }}<br>
+        {{ emetteur.adresse }}</p>
+
+        <h3>DESTINATAIRE :</h3>
+        <p>{{ destinataire.nom }}<br>
+        {{ destinataire.email }}<br>
+        {{ destinataire.adresse }}</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Prix Unitaire</th>
+                    <th>Quantité</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in facture.items %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.prix_unitaire }}€</td>
+                    <td>{{ item.quantite }}</td>
+                    <td>{{ item.total }}€</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3>Total HT : {{ facture.total_ht }}€</h3>
+        <h3>TVA (19%) : {{ facture.tva }}€</h3>
+        <h3><strong>Total TTC : {{ facture.total_ttc }}€</strong></h3>
+
+        <h3>RÈGLEMENT :</h3>
+        <p><strong>Banque :</strong> {{ paiement.banque }}</p>
+        <p><strong>IBAN :</strong> {{ paiement.iban }}</p>
+        <p><strong>BIC :</strong> {{ paiement.bic }}</p>
+    </div>
+
+</body>
+</html>

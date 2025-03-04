@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useEffect } from "react";
+import InvoicePreview from "@/components/invoice-preview";
 
 interface InvoiceFormProps {
   onSuccess?: () => void;
@@ -68,6 +69,8 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
   const [temporaryQuantities, setTemporaryQuantities] = useState<Record<number, number>>({});
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
   const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewData, setPreviewData] = useState<any>(null);
 
   const form = useForm({
     resolver: zodResolver(insertInvoiceSchema),
@@ -207,18 +210,19 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
             productId: product.id,
             quantity: product.quantity,
             price: product.price,
-            serviceId: null
+            serviceId: null,
+            name: product.name,
           })),
           ...selectedServices.map(service => ({
             serviceId: service.id,
             quantity: service.quantity,
             price: service.price,
-            productId: null
+            productId: null,
+            name: service.name,
           }))
         ]
       };
 
-      console.log('Sending invoice data:', invoiceData);
 
       const res = await fetch("/api/invoices", {
         method: "POST",
@@ -255,7 +259,7 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
     }
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = async (data: any) => {
     if (selectedProducts.length === 0 && selectedServices.length === 0) {
       toast({
         title: "Erreur",
@@ -264,7 +268,50 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
       });
       return;
     }
-    createInvoice.mutate(data);
+
+    const invoiceData = {
+      invoice: {
+        customerId: Number(data.customerId),
+        date: data.date,
+        status: data.status,
+        paymentType: data.paymentType,
+        total: calculateTotal(),
+      },
+      items: [
+        ...selectedProducts.map(product => ({
+          productId: product.id,
+          quantity: product.quantity,
+          price: product.price,
+          serviceId: null,
+          name: product.name,
+        })),
+        ...selectedServices.map(service => ({
+          serviceId: service.id,
+          quantity: service.quantity,
+          price: service.price,
+          productId: null,
+          name: service.name,
+        }))
+      ]
+    };
+
+    const customer = customers?.find((c: any) => c.id === Number(data.customerId));
+
+    setPreviewData({
+      invoice: invoiceData.invoice,
+      customer,
+      items: invoiceData.items,
+    });
+    setShowPreview(true);
+  };
+
+  const handleValidateInvoice = () => {
+    if (!previewData) return;
+
+    createInvoice.mutate({
+      ...form.getValues(),
+      total: calculateTotal(),
+    });
   };
 
   return (
@@ -598,6 +645,18 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
           </Button>
         </form>
       </Form>
+
+      {previewData && (
+        <InvoicePreview
+          open={showPreview}
+          onOpenChange={setShowPreview}
+          invoice={previewData.invoice}
+          customer={previewData.customer}
+          items={previewData.items}
+          onValidate={handleValidateInvoice}
+          onCancel={() => setShowPreview(false)}
+        />
+      )}
     </div>
   );
 }
