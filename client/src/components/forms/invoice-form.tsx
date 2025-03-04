@@ -1,9 +1,12 @@
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertInvoiceSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import InvoicePreview from "@/components/invoice-preview";
 import {
   Form,
   FormControl,
@@ -20,7 +23,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -37,8 +39,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useState, useEffect } from "react";
-import InvoicePreview from "@/components/invoice-preview";
+
 
 interface InvoiceFormProps {
   onSuccess?: () => void;
@@ -239,19 +240,24 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice 
 
   const createInvoice = useMutation({
     mutationFn: async (data: any) => {
-      const res = await fetch("/api/invoices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      try {
+        const res = await fetch("/api/invoices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
 
-      if (!res.ok) {
-        const error = await res.text();
-        console.error('Failed to create invoice:', error);
-        throw new Error("Failed to create invoice");
+        if (!res.ok) {
+          const error = await res.text();
+          console.error('Failed to create invoice:', error);
+          throw new Error("Failed to create invoice");
+        }
+
+        return res.json();
+      } catch (error) {
+        console.error('Mutation error:', error);
+        throw error;
       }
-
-      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });

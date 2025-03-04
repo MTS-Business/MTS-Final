@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { insertCustomerSchema, insertProductSchema, insertServiceSchema, insertInvoiceSchema, insertExpenseSchema } from "@shared/schema";
+import { insertCustomerSchema, insertProductSchema, insertServiceSchema, insertInvoiceSchema, insertInvoiceItemSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express) {
   // Customers
@@ -58,23 +58,26 @@ export async function registerRoutes(app: Express) {
 
   app.post("/api/invoices", async (req, res) => {
     try {
-      console.log('Received invoice data:', req.body);
+      console.log('Received invoice data:', JSON.stringify(req.body, null, 2));
       const { invoice, items } = req.body;
 
-      // Convert numeric strings to numbers
-      const validatedInvoice = {
+      // Validate invoice data
+      const validatedInvoice = insertInvoiceSchema.parse({
         ...invoice,
         customerId: Number(invoice.customerId),
         total: Number(invoice.total),
-      };
+      });
 
-      const validatedItems = items.map((item: any) => ({
-        ...item,
-        price: Number(item.price),
-        quantity: Number(item.quantity),
-        productId: item.productId ? Number(item.productId) : null,
-        serviceId: item.serviceId ? Number(item.serviceId) : null,
-      }));
+      // Validate each item
+      const validatedItems = items.map((item: any) =>
+        insertInvoiceItemSchema.parse({
+          ...item,
+          price: Number(item.price),
+          quantity: Number(item.quantity),
+          productId: item.productId ? Number(item.productId) : null,
+          serviceId: item.serviceId ? Number(item.serviceId) : null,
+        })
+      );
 
       console.log('Validated invoice:', validatedInvoice);
       console.log('Validated items:', validatedItems);
