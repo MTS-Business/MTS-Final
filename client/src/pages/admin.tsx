@@ -81,22 +81,13 @@ export default function Admin() {
     password: "",
   });
 
-  const handleRoleChange = (roleId: string) => {
-    const role = roles.find(r => r.id === roleId);
-    setNewUser({ ...newUser, role: roleId });
-    if (role) {
-      setSelectedPages(role.pages);
-    }
-  };
-
   const handleCreateUser = () => {
     toast({
       title: "Utilisateur créé",
-      description: `Le nouvel utilisateur ${newUser.name} a été créé avec les accès sélectionnés.`
+      description: `Le nouvel utilisateur ${newUser.name} a été créé avec succès.`
     });
     setIsCreateOpen(false);
     setNewUser({ name: "", email: "", role: "", password: "" });
-    setSelectedPages([]);
   };
 
   const handleDeleteUser = (userId: number) => {
@@ -157,7 +148,7 @@ export default function Admin() {
                 <Label htmlFor="role">Rôle</Label>
                 <Select
                   value={newUser.role}
-                  onValueChange={handleRoleChange}
+                  onValueChange={(value) => setNewUser({ ...newUser, role: value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner un rôle" />
