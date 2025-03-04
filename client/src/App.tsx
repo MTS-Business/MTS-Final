@@ -25,7 +25,7 @@ function Router() {
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background transition-all duration-300">
       <Navbar isCollapsed={isNavCollapsed} onCollapse={setIsNavCollapsed} />
       <main className={`transition-all duration-300 ${isNavCollapsed ? 'pl-20' : 'pl-64'}`}>
         <Header />
