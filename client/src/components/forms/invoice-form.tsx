@@ -223,6 +223,7 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
         ]
       };
 
+      console.log('Creating invoice with data:', invoiceData);
 
       const res = await fetch("/api/invoices", {
         method: "POST",
@@ -269,38 +270,22 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
       return;
     }
 
-    const invoiceData = {
-      invoice: {
-        customerId: Number(data.customerId),
-        date: data.date,
-        status: data.status,
-        paymentType: data.paymentType,
-        total: calculateTotal(),
-      },
-      items: [
-        ...selectedProducts.map(product => ({
-          productId: product.id,
-          quantity: product.quantity,
-          price: product.price,
-          serviceId: null,
-          name: product.name,
-        })),
-        ...selectedServices.map(service => ({
-          serviceId: service.id,
-          quantity: service.quantity,
-          price: service.price,
-          productId: null,
-          name: service.name,
-        }))
-      ]
-    };
-
     const customer = customers?.find((c: any) => c.id === Number(data.customerId));
 
+    console.log('Form submitted with data:', data);
+    console.log('Selected products:', selectedProducts);
+    console.log('Selected services:', selectedServices);
+
     setPreviewData({
-      invoice: invoiceData.invoice,
+      invoice: {
+        ...data,
+        total: calculateTotal(),
+      },
       customer,
-      items: invoiceData.items,
+      items: [
+        ...selectedProducts,
+        ...selectedServices
+      ],
     });
     setShowPreview(true);
   };
@@ -308,10 +293,9 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat }: InvoiceFormPr
   const handleValidateInvoice = () => {
     if (!previewData) return;
 
-    createInvoice.mutate({
-      ...form.getValues(),
-      total: calculateTotal(),
-    });
+    const formData = form.getValues();
+    console.log('Validating invoice with form data:', formData);
+    createInvoice.mutate(formData);
   };
 
   return (
