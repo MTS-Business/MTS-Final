@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit, Trash } from "lucide-react";
+import { Plus, Edit, Trash, Lock } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -71,7 +71,9 @@ const pages = [
 export default function Admin() {
   const { toast } = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isAccessOpen, setIsAccessOpen] = useState(false);
   const [selectedPages, setSelectedPages] = useState<string[]>([]);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
@@ -104,6 +106,20 @@ export default function Admin() {
     });
   };
 
+  const handleOpenAccess = (user: any) => {
+    setSelectedUser(user);
+    setSelectedPages(roles.find(r => r.label === user.role)?.pages || []);
+    setIsAccessOpen(true);
+  };
+
+  const handleSaveAccess = () => {
+    toast({
+      title: "Accès modifiés",
+      description: `Les accès de ${selectedUser.name} ont été mis à jour.`
+    });
+    setIsAccessOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -115,7 +131,7 @@ export default function Admin() {
               Nouvel utilisateur
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
             </DialogHeader>
@@ -164,27 +180,6 @@ export default function Admin() {
                   onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Pages accessibles</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {pages.map((page) => (
-                    <div key={page.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={page.id}
-                        checked={selectedPages.includes(page.path)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedPages([...selectedPages, page.path]);
-                          } else {
-                            setSelectedPages(selectedPages.filter(p => p !== page.path));
-                          }
-                        }}
-                      />
-                      <Label htmlFor={page.id}>{page.label}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
               <Button
                 className="w-full bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
                 onClick={handleCreateUser}
@@ -195,6 +190,53 @@ export default function Admin() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <Dialog open={isAccessOpen} onOpenChange={setIsAccessOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Gérer les accès - {selectedUser?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Page</TableHead>
+                    <TableHead>Accès</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pages.map((page) => (
+                    <TableRow key={page.id}>
+                      <TableCell>{page.label}</TableCell>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedPages.includes(page.path)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedPages([...selectedPages, page.path]);
+                            } else {
+                              setSelectedPages(selectedPages.filter(p => p !== page.path));
+                            }
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+            <Button
+              className="w-full bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
+              onClick={handleSaveAccess}
+            >
+              Enregistrer les modifications
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <Table>
@@ -233,6 +275,13 @@ export default function Admin() {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleOpenAccess(user)}
+                    >
+                      <Lock className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="icon">
                       <Edit className="h-4 w-4" />
                     </Button>
