@@ -25,7 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 const calculateNetSalary = (brutSalary: number) => {
   const cnss = brutSalary * 0.0968; // 9.68% pour la CNSS
   const css = brutSalary * 0.003995; // 0.3995% pour la CSS
-  
+
   // Calcul de l'IRPP (exemple simplifié)
   let irpp = 0;
   const annualSalary = brutSalary * 12;
@@ -42,7 +42,7 @@ const calculateNetSalary = (brutSalary: number) => {
   }
 
   const netSalary = brutSalary - cnss - css - irpp;
-  
+
   return {
     brut: brutSalary,
     cnss: cnss,
@@ -81,7 +81,7 @@ export default function Personnel() {
     setPersonnel([...personnel, newEmployeeData]);
     setIsOpen(false);
     setNewEmployee({ nom: "", prenom: "", cin: "", salaireBrut: 0 });
-    
+
     toast({
       title: "Employé ajouté",
       description: "Le nouvel employé a été ajouté avec succès."
