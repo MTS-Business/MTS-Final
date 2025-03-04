@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Edit, Trash } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -49,30 +50,51 @@ const users = [
 ];
 
 const roles = [
-  { id: "admin", label: "Administrateur" },
-  { id: "accountant", label: "Comptable" },
-  { id: "user", label: "Utilisateur" },
-  { id: "support", label: "Support" }
+  { id: "admin", label: "Administrateur", pages: ["*"] },
+  { id: "accountant", label: "Comptable", pages: ["/invoices", "/expenses", "/sales"] },
+  { id: "support", label: "Support", pages: ["/customers", "/messages"] },
+  { id: "user", label: "Utilisateur", pages: ["/dashboard", "/profile"] }
+];
+
+const pages = [
+  { id: "dashboard", label: "Tableau de bord", path: "/" },
+  { id: "inventory", label: "Inventaire", path: "/inventory" },
+  { id: "services", label: "Services", path: "/services" },
+  { id: "invoices", label: "Factures", path: "/invoices" },
+  { id: "customers", label: "Clients", path: "/customers" },
+  { id: "expenses", label: "Dépenses", path: "/expenses" },
+  { id: "sales", label: "Ventes", path: "/sales" },
+  { id: "messages", label: "Messages", path: "/messages" },
+  { id: "profile", label: "Profil", path: "/profile" }
 ];
 
 export default function Admin() {
   const { toast } = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedPages, setSelectedPages] = useState<string[]>([]);
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
     role: "",
-    password: ""
+    password: "",
   });
 
+  const handleRoleChange = (roleId: string) => {
+    const role = roles.find(r => r.id === roleId);
+    setNewUser({ ...newUser, role: roleId });
+    if (role) {
+      setSelectedPages(role.pages);
+    }
+  };
+
   const handleCreateUser = () => {
-    // Simuler la création d'un utilisateur
     toast({
       title: "Utilisateur créé",
-      description: "Le nouvel utilisateur a été créé avec succès."
+      description: `Le nouvel utilisateur ${newUser.name} a été créé avec les accès sélectionnés.`
     });
     setIsCreateOpen(false);
     setNewUser({ name: "", email: "", role: "", password: "" });
+    setSelectedPages([]);
   };
 
   const handleDeleteUser = (userId: number) => {
@@ -93,7 +115,7 @@ export default function Admin() {
               Nouvel utilisateur
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
             </DialogHeader>
@@ -119,7 +141,7 @@ export default function Admin() {
                 <Label htmlFor="role">Rôle</Label>
                 <Select
                   value={newUser.role}
-                  onValueChange={(value) => setNewUser({ ...newUser, role: value })}
+                  onValueChange={handleRoleChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner un rôle" />
@@ -141,6 +163,27 @@ export default function Admin() {
                   value={newUser.password}
                   onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>Pages accessibles</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {pages.map((page) => (
+                    <div key={page.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={page.id}
+                        checked={selectedPages.includes(page.path)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedPages([...selectedPages, page.path]);
+                          } else {
+                            setSelectedPages(selectedPages.filter(p => p !== page.path));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={page.id}>{page.label}</Label>
+                    </div>
+                  ))}
+                </div>
               </div>
               <Button
                 className="w-full bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
