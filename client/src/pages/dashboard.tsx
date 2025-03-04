@@ -116,34 +116,34 @@ export default function Dashboard() {
               <AreaChart data={data}>
                 <defs>
                   <linearGradient id="income" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#246BFD" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#246BFD" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#5863F8" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#5863F8" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="expense" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#A3C1FF" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#A3C1FF" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#16BAC5" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#16BAC5" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="name" stroke="#6B7280" />
-                <YAxis stroke="#6B7280" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#16BAC5" opacity={0.1} />
+                <XAxis dataKey="name" stroke="#171D1C" />
+                <YAxis stroke="#171D1C" />
                 <Tooltip 
                   contentStyle={{ 
                     backgroundColor: '#FFFFFF',
-                    border: '1px solid #E5E7EB'
+                    border: '1px solid #16BAC5'
                   }}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="income" 
-                  stroke="#246BFD" 
+                  stroke="#5863F8" 
                   fillOpacity={1} 
                   fill="url(#income)" 
                 />
                 <Area 
                   type="monotone" 
                   dataKey="expense" 
-                  stroke="#A3C1FF" 
+                  stroke="#16BAC5" 
                   fillOpacity={1} 
                   fill="url(#expense)" 
                 />
