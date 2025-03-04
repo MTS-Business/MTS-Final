@@ -24,7 +24,7 @@ export default function Navbar() {
   const [location] = useLocation();
 
   return (
-    <nav className="border-l fixed right-0 top-0 h-screen w-64 bg-background">
+    <nav className="border-r fixed left-0 top-0 h-screen w-64 bg-background">
       <div className="flex flex-col h-full p-4">
         <div className="font-bold text-2xl text-primary mb-8 px-3">Business Manager</div>
         <div className="flex flex-col gap-2">
