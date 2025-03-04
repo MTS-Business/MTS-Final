@@ -21,37 +21,6 @@ import { Plus, Edit, Trash } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
-// Fonction pour calculer le salaire net
-const calculateNetSalary = (brutSalary: number) => {
-  const cnss = brutSalary * 0.0968; // 9.68% pour la CNSS
-  const css = brutSalary * 0.003995; // 0.3995% pour la CSS
-
-  // Calcul de l'IRPP (exemple simplifié)
-  let irpp = 0;
-  const annualSalary = brutSalary * 12;
-  if (annualSalary <= 5000) {
-    irpp = 0;
-  } else if (annualSalary <= 20000) {
-    irpp = brutSalary * 0.26;
-  } else if (annualSalary <= 30000) {
-    irpp = brutSalary * 0.28;
-  } else if (annualSalary <= 50000) {
-    irpp = brutSalary * 0.32;
-  } else {
-    irpp = brutSalary * 0.35;
-  }
-
-  const netSalary = brutSalary - cnss - css - irpp;
-
-  return {
-    brut: brutSalary,
-    cnss: cnss,
-    css: css,
-    irpp: irpp,
-    net: netSalary
-  };
-};
-
 export default function Personnel() {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -61,7 +30,9 @@ export default function Personnel() {
       nom: "Martin",
       prenom: "Sophie",
       cin: "12345678",
+      fonction: "Comptable",
       salaireBrut: 2000.000,
+      prime: 200.000,
     },
   ]);
 
@@ -69,7 +40,9 @@ export default function Personnel() {
     nom: "",
     prenom: "",
     cin: "",
+    fonction: "",
     salaireBrut: 0,
+    prime: 0,
   });
 
   const handleCreate = () => {
@@ -80,7 +53,7 @@ export default function Personnel() {
 
     setPersonnel([...personnel, newEmployeeData]);
     setIsOpen(false);
-    setNewEmployee({ nom: "", prenom: "", cin: "", salaireBrut: 0 });
+    setNewEmployee({ nom: "", prenom: "", cin: "", fonction: "", salaireBrut: 0, prime: 0 });
 
     toast({
       title: "Employé ajouté",
@@ -129,6 +102,14 @@ export default function Personnel() {
                 />
               </div>
               <div>
+                <Label htmlFor="fonction">Fonction</Label>
+                <Input
+                  id="fonction"
+                  value={newEmployee.fonction}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, fonction: e.target.value })}
+                />
+              </div>
+              <div>
                 <Label htmlFor="salaireBrut">Salaire Brut</Label>
                 <Input
                   id="salaireBrut"
@@ -136,6 +117,16 @@ export default function Personnel() {
                   step="0.001"
                   value={newEmployee.salaireBrut}
                   onChange={(e) => setNewEmployee({ ...newEmployee, salaireBrut: parseFloat(e.target.value) })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="prime">Prime</Label>
+                <Input
+                  id="prime"
+                  type="number"
+                  step="0.001"
+                  value={newEmployee.prime}
+                  onChange={(e) => setNewEmployee({ ...newEmployee, prime: parseFloat(e.target.value) })}
                 />
               </div>
               <Button
@@ -156,40 +147,33 @@ export default function Personnel() {
               <TableHead>Nom</TableHead>
               <TableHead>Prénom</TableHead>
               <TableHead>CIN</TableHead>
+              <TableHead>Fonction</TableHead>
               <TableHead>Salaire Brut</TableHead>
-              <TableHead>CNSS</TableHead>
-              <TableHead>IRPP</TableHead>
-              <TableHead>CSS</TableHead>
-              <TableHead>Salaire Net</TableHead>
+              <TableHead>Prime</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {personnel.map((employee) => {
-              const salary = calculateNetSalary(employee.salaireBrut);
-              return (
-                <TableRow key={employee.id}>
-                  <TableCell>{employee.nom}</TableCell>
-                  <TableCell>{employee.prenom}</TableCell>
-                  <TableCell>{employee.cin}</TableCell>
-                  <TableCell>{salary.brut.toFixed(3)}</TableCell>
-                  <TableCell>{salary.cnss.toFixed(3)}</TableCell>
-                  <TableCell>{salary.irpp.toFixed(3)}</TableCell>
-                  <TableCell>{salary.css.toFixed(3)}</TableCell>
-                  <TableCell className="font-bold">{salary.net.toFixed(3)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {personnel.map((employee) => (
+              <TableRow key={employee.id}>
+                <TableCell>{employee.nom}</TableCell>
+                <TableCell>{employee.prenom}</TableCell>
+                <TableCell>{employee.cin}</TableCell>
+                <TableCell>{employee.fonction}</TableCell>
+                <TableCell>{employee.salaireBrut.toFixed(3)}</TableCell>
+                <TableCell>{employee.prime.toFixed(3)}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </Card>
