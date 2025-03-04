@@ -13,6 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +26,9 @@ import { useToast } from "@/hooks/use-toast";
 export default function Personnel() {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [personnel, setPersonnel] = useState([
     {
       id: 1,
@@ -58,6 +63,26 @@ export default function Personnel() {
     toast({
       title: "Employé ajouté",
       description: "Le nouvel employé a été ajouté avec succès."
+    });
+  };
+
+  const handleEdit = () => {
+    setPersonnel(personnel.map(emp => 
+      emp.id === selectedEmployee.id ? selectedEmployee : emp
+    ));
+    setIsEditOpen(false);
+    toast({
+      title: "Employé modifié",
+      description: "Les informations de l'employé ont été mises à jour avec succès."
+    });
+  };
+
+  const handleDelete = () => {
+    setPersonnel(personnel.filter(emp => emp.id !== selectedEmployee.id));
+    setIsDeleteOpen(false);
+    toast({
+      title: "Employé supprimé",
+      description: "L'employé a été supprimé avec succès."
     });
   };
 
@@ -140,6 +165,98 @@ export default function Personnel() {
         </Dialog>
       </div>
 
+      {/* Modal d'édition */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier l'employé</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-nom">Nom</Label>
+              <Input
+                id="edit-nom"
+                value={selectedEmployee?.nom || ""}
+                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, nom: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-prenom">Prénom</Label>
+              <Input
+                id="edit-prenom"
+                value={selectedEmployee?.prenom || ""}
+                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, prenom: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-cin">CIN</Label>
+              <Input
+                id="edit-cin"
+                value={selectedEmployee?.cin || ""}
+                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, cin: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-fonction">Fonction</Label>
+              <Input
+                id="edit-fonction"
+                value={selectedEmployee?.fonction || ""}
+                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, fonction: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-salaireBrut">Salaire Brut</Label>
+              <Input
+                id="edit-salaireBrut"
+                type="number"
+                step="0.001"
+                value={selectedEmployee?.salaireBrut || 0}
+                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, salaireBrut: parseFloat(e.target.value) })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-prime">Prime</Label>
+              <Input
+                id="edit-prime"
+                type="number"
+                step="0.001"
+                value={selectedEmployee?.prime || 0}
+                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, prime: parseFloat(e.target.value) })}
+              />
+            </div>
+            <Button
+              className="w-full bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
+              onClick={handleEdit}
+            >
+              Enregistrer les modifications
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de confirmation de suppression */}
+      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmer la suppression</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir supprimer cet employé ? Cette action est irréversible.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>
+              Annuler
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete}
+            >
+              Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Card>
         <Table>
           <TableHeader>
@@ -164,10 +281,24 @@ export default function Personnel() {
                 <TableCell>{employee.prime.toFixed(3)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => {
+                        setSelectedEmployee(employee);
+                        setIsEditOpen(true);
+                      }}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => {
+                        setSelectedEmployee(employee);
+                        setIsDeleteOpen(true);
+                      }}
+                    >
                       <Trash className="h-4 w-4" />
                     </Button>
                   </div>
