@@ -11,12 +11,15 @@ import Customers from "@/pages/customers";
 import Expenses from "@/pages/expenses";
 import Sales from "@/pages/sales";
 import NotFound from "@/pages/not-found";
+import { useState } from "react";
 
 function Router() {
+  const [isNavCollapsed, setIsNavCollapsed] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
-      <main className="pl-[80px] lg:pl-64 transition-all duration-300">
-        <div className="container mx-auto px-4 py-8">
+      <main className={`transition-all duration-300 ${isNavCollapsed ? 'pl-20' : 'pl-64'}`}>
+        <div className="container mx-auto px-4 py-8 max-w-[100%]">
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/inventory" component={Inventory} />
@@ -29,7 +32,7 @@ function Router() {
           </Switch>
         </div>
       </main>
-      <Navbar />
+      <Navbar isCollapsed={isNavCollapsed} onCollapse={setIsNavCollapsed} />
     </div>
   );
 }

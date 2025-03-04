@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
@@ -24,9 +23,13 @@ const navItems = [
   { href: "/sales", label: "Ventes", icon: TrendingUp },
 ];
 
-export default function Navbar() {
+interface NavbarProps {
+  isCollapsed: boolean;
+  onCollapse: (collapsed: boolean) => void;
+}
+
+export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
   const [location] = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <nav className={cn(
@@ -44,7 +47,7 @@ export default function Navbar() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setIsCollapsed(!isCollapsed)}
+            onClick={() => onCollapse(!isCollapsed)}
             className="ml-auto"
           >
             {isCollapsed ? (
