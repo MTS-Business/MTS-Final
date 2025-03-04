@@ -3,6 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import Navbar from "@/components/layout/navbar";
+import Header from "@/components/layout/header";
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
 import Services from "@/pages/services";
@@ -18,8 +19,10 @@ function Router() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar isCollapsed={isNavCollapsed} onCollapse={setIsNavCollapsed} />
       <main className={`transition-all duration-300 ${isNavCollapsed ? 'pl-20' : 'pl-64'}`}>
-        <div className="container mx-auto px-4 py-8 max-w-[100%]">
+        <Header />
+        <div className="container mx-auto px-8 py-8">
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/inventory" component={Inventory} />
@@ -32,7 +35,7 @@ function Router() {
           </Switch>
         </div>
       </main>
-      <Navbar isCollapsed={isNavCollapsed} onCollapse={setIsNavCollapsed} />
+      <Toaster />
     </div>
   );
 }
@@ -41,7 +44,6 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router />
-      <Toaster />
     </QueryClientProvider>
   );
 }
