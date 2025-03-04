@@ -1,6 +1,6 @@
 {
   "variant": "professional",
-  "primary": "#5FBFF9",
+  "primary": "#0077B6",
   "appearance": "light",
   "radius": 0.5,
   "colors": {
@@ -14,7 +14,7 @@
     "card-foreground": "#171D1C",
     "border": "#16BAC5",
     "input": "#FFFFFF",
-    "primary": "#5FBFF9",
+    "primary": "#0077B6",
     "primary-foreground": "#FFFFFF",
     "secondary": "#5FBFF9",
     "secondary-foreground": "#171D1C",
@@ -24,6 +24,6 @@
     "success-foreground": "#FFFFFF",
     "destructive": "#5863F8",
     "destructive-foreground": "#FFFFFF",
-    "ring": "#5FBFF9"
+    "ring": "#0077B6"
   }
 }

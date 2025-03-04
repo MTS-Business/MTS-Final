@@ -122,7 +122,7 @@ export default function Invoices() {
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button onClick={handleOpenNewInvoice} className="bg-[#5FBFF9] text-white hover:bg-[#5FBFF9]/90">
+              <Button onClick={handleOpenNewInvoice} className="bg-[#0077B6] text-white hover:bg-[#0077B6]/90">
                 <Plus className="mr-2 h-4 w-4" />
                 Nouvelle Facture
               </Button>
@@ -156,13 +156,13 @@ export default function Invoices() {
               <TableRow key={invoice.id}>
                 <TableCell>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" className="text-[#5FBFF9]" onClick={() => handlePreview(invoice)}>
+                    <Button variant="ghost" size="sm" className="text-[#0077B6]" onClick={() => handlePreview(invoice)}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-[#5FBFF9]" onClick={() => handleEdit(invoice)}>
+                    <Button variant="ghost" size="sm" className="text-[#0077B6]" onClick={() => handleEdit(invoice)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" className="text-[#5FBFF9]" onClick={() => handlePrint(invoice)}>
+                    <Button variant="ghost" size="sm" className="text-[#0077B6]" onClick={() => handlePrint(invoice)}>
                       <Printer className="h-4 w-4" />
                     </Button>
                   </div>
