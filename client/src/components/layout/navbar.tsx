@@ -24,30 +24,28 @@ export default function Navbar() {
   const [location] = useLocation();
 
   return (
-    <nav className="border-b">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          <div className="font-bold text-2xl text-primary">Business Manager</div>
-          <div className="flex gap-4">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link key={item.href} href={item.href}>
-                  <a
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded-md transition-colors",
-                      location === item.href
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </a>
-                </Link>
-              );
-            })}
-          </div>
+    <nav className="border-l fixed right-0 top-0 h-screen w-64 bg-background">
+      <div className="flex flex-col h-full p-4">
+        <div className="font-bold text-2xl text-primary mb-8 px-3">Business Manager</div>
+        <div className="flex flex-col gap-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link key={item.href} href={item.href}>
+                <a
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                    location === item.href
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted"
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  {item.label}
+                </a>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </nav>

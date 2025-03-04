@@ -15,19 +15,21 @@ import NotFound from "@/pages/not-found";
 function Router() {
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="container mx-auto px-4 py-8">
-        <Switch>
-          <Route path="/" component={Dashboard} />
-          <Route path="/inventory" component={Inventory} />
-          <Route path="/services" component={Services} />
-          <Route path="/invoices" component={Invoices} />
-          <Route path="/customers" component={Customers} />
-          <Route path="/expenses" component={Expenses} />
-          <Route path="/sales" component={Sales} />
-          <Route component={NotFound} />
-        </Switch>
+      <main className="pr-64">
+        <div className="container mx-auto px-4 py-8">
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/inventory" component={Inventory} />
+            <Route path="/services" component={Services} />
+            <Route path="/invoices" component={Invoices} />
+            <Route path="/customers" component={Customers} />
+            <Route path="/expenses" component={Expenses} />
+            <Route path="/sales" component={Sales} />
+            <Route component={NotFound} />
+          </Switch>
+        </div>
       </main>
+      <Navbar />
     </div>
   );
 }
