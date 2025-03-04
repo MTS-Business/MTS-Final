@@ -7,8 +7,12 @@ import {
   Users,
   DollarSign,
   TrendingUp,
-  Briefcase
+  Briefcase,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -22,11 +26,34 @@ const navItems = [
 
 export default function Navbar() {
   const [location] = useLocation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <nav className="border-r fixed left-0 top-0 h-screen w-64 bg-background">
+    <nav className={cn(
+      "border-r fixed left-0 top-0 h-screen bg-background transition-all duration-300",
+      isCollapsed ? "w-20" : "w-64"
+    )}>
       <div className="flex flex-col h-full p-4">
-        <div className="font-bold text-2xl text-primary mb-8 px-3">Business Manager</div>
+        <div className="flex items-center justify-between mb-8">
+          <div className={cn(
+            "font-bold text-2xl text-primary transition-all",
+            isCollapsed ? "hidden" : "block"
+          )}>
+            Business Manager
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="ml-auto"
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
         <div className="flex flex-col gap-2">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -39,9 +66,15 @@ export default function Navbar() {
                       ? "bg-primary text-primary-foreground"
                       : "hover:bg-muted"
                   )}
+                  title={isCollapsed ? item.label : undefined}
                 >
                   <Icon className="h-5 w-5" />
-                  {item.label}
+                  <span className={cn(
+                    "transition-all",
+                    isCollapsed ? "hidden" : "block"
+                  )}>
+                    {item.label}
+                  </span>
                 </a>
               </Link>
             );
