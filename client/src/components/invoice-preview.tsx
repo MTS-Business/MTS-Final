@@ -39,8 +39,8 @@ export default function InvoicePreview({
 
           <div className="space-y-4">
             <div>
-              <p><strong>Date :</strong> {format(new Date(invoice.date), "dd/MM/yyyy")}</p>
-              <p><strong>Facture N° :</strong> FAC-{invoice.id}</p>
+              <p><strong>Date :</strong> {invoice?.date ? format(new Date(invoice.date), "dd/MM/yyyy") : ''}</p>
+              <p><strong>Facture N° :</strong> FAC-{invoice?.id}</p>
             </div>
 
             <div>
@@ -52,31 +52,33 @@ export default function InvoicePreview({
 
             <div>
               <h3 className="text-lg font-semibold">DESTINATAIRE :</h3>
-              <p>{customer.name}<br />
-              {customer.email}<br />
-              {customer.address}</p>
+              <p>{customer?.name}<br />
+              {customer?.email}<br />
+              {customer?.address}</p>
             </div>
 
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border p-2 text-left">Description</th>
-                  <th className="border p-2 text-left">Prix Unitaire</th>
-                  <th className="border p-2 text-left">Quantité</th>
-                  <th className="border p-2 text-left">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={index}>
-                    <td className="border p-2">{item.name}</td>
-                    <td className="border p-2">{Number(item.price).toFixed(2)}€</td>
-                    <td className="border p-2">{item.quantity}</td>
-                    <td className="border p-2">{(item.price * item.quantity).toFixed(2)}€</td>
+            <div className="max-h-[40vh] overflow-y-auto border rounded-lg">
+              <table className="w-full border-collapse">
+                <thead className="sticky top-0 bg-white">
+                  <tr className="bg-gray-100">
+                    <th className="border p-2 text-left">Description</th>
+                    <th className="border p-2 text-left">Prix Unitaire</th>
+                    <th className="border p-2 text-left">Quantité</th>
+                    <th className="border p-2 text-left">Total</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {items.map((item, index) => (
+                    <tr key={index}>
+                      <td className="border p-2">{item.name}</td>
+                      <td className="border p-2">{Number(item.price).toFixed(2)}€</td>
+                      <td className="border p-2">{item.quantity}</td>
+                      <td className="border p-2">{(item.price * item.quantity).toFixed(2)}€</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             <div className="space-y-2">
               <h3 className="text-right">Total HT : {subtotal.toFixed(2)}€</h3>
@@ -86,8 +88,8 @@ export default function InvoicePreview({
 
             <div>
               <h3 className="text-lg font-semibold">RÈGLEMENT :</h3>
-              <p><strong>Type de paiement :</strong> {invoice.paymentType}</p>
-              {invoice.paymentType === "virement" && (
+              <p><strong>Type de paiement :</strong> {invoice?.paymentType}</p>
+              {invoice?.paymentType === "virement" && (
                 <>
                   <p><strong>Banque :</strong> Nom de la banque</p>
                   <p><strong>IBAN :</strong> FR76 XXXX XXXX XXXX XXXX</p>

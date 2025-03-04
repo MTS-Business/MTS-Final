@@ -15,7 +15,7 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit, Eye } from "lucide-react";
+import { Plus, Edit, Eye, Printer } from "lucide-react";
 import { format } from "date-fns";
 import InvoiceForm from "@/components/forms/invoice-form";
 import InvoicePreview from "@/components/invoice-preview";
@@ -80,6 +80,13 @@ export default function Invoices() {
 
     setSelectedInvoice(editingData);
     setOpen(true);
+  };
+
+  const handlePrint = async (invoice: any) => {
+    await handlePreview(invoice);
+    setTimeout(() => {
+      window.print();
+    }, 500);
   };
 
   return (
@@ -148,6 +155,9 @@ export default function Invoices() {
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(invoice)}>
                       <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handlePrint(invoice)}>
+                      <Printer className="h-4 w-4" />
                     </Button>
                   </div>
                 </TableCell>
