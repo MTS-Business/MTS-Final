@@ -7,13 +7,67 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Calculator, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
+import { Calculator, DollarSign, TrendingUp, TrendingDown, Mail } from "lucide-react";
 import { DashboardCard } from "@/components/layout/dashboard-card";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Comptabilite() {
+  const { toast } = useToast();
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  const handleSendToAccountant = () => {
+    // Simulation d'envoi
+    setIsConfirmOpen(false);
+    toast({
+      title: "Documents envoyés",
+      description: "Les factures et dépenses ont été envoyées au comptable avec succès."
+    });
+  };
+
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Comptabilité</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Comptabilité</h1>
+        <Button 
+          onClick={() => setIsConfirmOpen(true)}
+          className="bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
+        >
+          <Mail className="mr-2 h-4 w-4" />
+          Envoi Comptable
+        </Button>
+      </div>
+
+      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Envoyer au comptable</DialogTitle>
+            <DialogDescription>
+              Voulez-vous envoyer toutes les factures et dépenses de la période actuelle au comptable ?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>
+              Annuler
+            </Button>
+            <Button 
+              className="bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
+              onClick={handleSendToAccountant}
+            >
+              Confirmer l'envoi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <DashboardCard
