@@ -1,6 +1,9 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { Download } from "lucide-react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface InvoicePreviewProps {
   open: boolean;
@@ -26,13 +29,31 @@ export default function InvoicePreview({
   const total = subtotal + vatAmount + 1; // +1 pour le timbre fiscal
 
   const handlePrint = () => {
-    window.print();
+    setTimeout(() => {
+      window.print();
+    }, 500);
+  };
+
+  const handleDownload = async () => {
+    const element = document.querySelector(".invoice-content");
+    if (!element) return;
+
+    const canvas = await html2canvas(element);
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF();
+
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`facture-${invoice?.id || 'nouvelle'}.pdf`);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="print-content">
+        <div className="invoice-content print-content">
           <div className="p-6 space-y-6">
             <div className="bg-black text-white p-4 text-center">
               <h1 className="text-2xl font-bold">FACTURE</h1>
@@ -108,6 +129,10 @@ export default function InvoicePreview({
           </Button>
           <Button variant="outline" onClick={handlePrint}>
             Imprimer
+          </Button>
+          <Button variant="outline" onClick={handleDownload}>
+            <Download className="mr-2 h-4 w-4" />
+            Télécharger PDF
           </Button>
           <Button onClick={onValidate}>
             Valider
