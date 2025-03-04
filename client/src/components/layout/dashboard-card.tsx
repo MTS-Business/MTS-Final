@@ -22,7 +22,7 @@ export function DashboardCard({
   subtext 
 }: DashboardCardProps) {
   return (
-    <Card className={cn("bg-white", colorClass)}>
+    <Card className={cn("bg-card shadow-sm", colorClass)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
@@ -30,11 +30,11 @@ export function DashboardCard({
         {icon}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="text-2xl font-bold text-foreground">{value}</div>
         {percentage && (
           <p className={cn(
-            "text-xs",
-            percentage.trend === 'up' ? "text-green-600" : "text-red-600"
+            "text-xs font-medium",
+            percentage.trend === 'up' ? "text-success" : "text-destructive"
           )}>
             {percentage.trend === 'up' ? '↑' : '↓'} {percentage.value}%
           </p>

@@ -67,7 +67,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Tableau de bord</h1>
+        <h1 className="text-3xl font-bold text-foreground">Tableau de bord</h1>
         <div className="text-sm text-muted-foreground">
           {new Date().toLocaleDateString('fr-FR', { 
             day: 'numeric',
@@ -81,28 +81,28 @@ export default function Dashboard() {
         <DashboardCard
           title="Solde total"
           value={`${(totalSales - totalExpenses).toFixed(2)} €`}
-          icon={<Wallet className="h-4 w-4 text-muted-foreground" />}
+          icon={<Wallet className="h-4 w-4 text-primary" />}
           percentage={{ value: 4.5, trend: "up" }}
           subtext="vs mois dernier"
         />
         <DashboardCard
           title="Ventes mensuelles"
           value={`${totalSales.toFixed(2)} €`}
-          icon={<Receipt className="h-4 w-4 text-muted-foreground" />}
+          icon={<Receipt className="h-4 w-4 text-primary" />}
           percentage={{ value: 2.9, trend: "down" }}
           subtext="vs mois dernier"
         />
         <DashboardCard
           title="Clients"
           value={totalCustomers}
-          icon={<Users className="h-4 w-4 text-muted-foreground" />}
+          icon={<Users className="h-4 w-4 text-primary" />}
           percentage={{ value: 12, trend: "up" }}
           subtext="nouveaux clients"
         />
         <DashboardCard
           title="Produits"
           value={totalProducts}
-          icon={<Package className="h-4 w-4 text-muted-foreground" />}
+          icon={<Package className="h-4 w-4 text-primary" />}
           percentage={{ value: 3, trend: "down" }}
           subtext="en stock"
         />
@@ -110,35 +110,40 @@ export default function Dashboard() {
 
       <div className="grid gap-4 md:grid-cols-7">
         <Card className="col-span-5 p-6">
-          <h2 className="text-lg font-semibold mb-6">Statistiques financières</h2>
+          <h2 className="text-lg font-semibold mb-6 text-foreground">Statistiques financières</h2>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data}>
                 <defs>
                   <linearGradient id="income" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#642122" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#642122" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#246BFD" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#246BFD" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="expense" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#862325" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#862325" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#A3C1FF" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#A3C1FF" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis dataKey="name" stroke="#6B7280" />
+                <YAxis stroke="#6B7280" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #E5E7EB'
+                  }}
+                />
                 <Area 
                   type="monotone" 
                   dataKey="income" 
-                  stroke="#642122" 
+                  stroke="#246BFD" 
                   fillOpacity={1} 
                   fill="url(#income)" 
                 />
                 <Area 
                   type="monotone" 
                   dataKey="expense" 
-                  stroke="#862325" 
+                  stroke="#A3C1FF" 
                   fillOpacity={1} 
                   fill="url(#expense)" 
                 />
@@ -148,19 +153,19 @@ export default function Dashboard() {
         </Card>
 
         <Card className="col-span-2 p-6">
-          <h2 className="text-lg font-semibold mb-4">Transactions récentes</h2>
+          <h2 className="text-lg font-semibold mb-4 text-foreground">Transactions récentes</h2>
           <div className="space-y-4">
             {recentTransactions.map((transaction, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{transaction.name}</p>
+                  <p className="font-medium text-foreground">{transaction.name}</p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(transaction.date).toLocaleDateString('fr-FR')}
                   </p>
                 </div>
                 <span className={cn(
                   "font-medium",
-                  transaction.type === "income" ? "text-green-600" : "text-red-600"
+                  transaction.type === "income" ? "text-success" : "text-destructive"
                 )}>
                   {transaction.type === "income" ? "+" : "-"}
                   {transaction.amount.toFixed(2)} €
