@@ -33,7 +33,7 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
 
   return (
     <nav className={cn(
-      "border-r fixed left-0 top-0 h-screen bg-background transition-all duration-300",
+      "border-r fixed left-0 top-0 h-screen bg-[#EFE9F4] transition-all duration-300",
       isCollapsed ? "w-20" : "w-64"
     )}>
       <div className="flex flex-col h-full p-4">
@@ -67,8 +67,8 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
                     location === item.href
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted"
+                      ? "bg-[#5FBFF9] text-white"
+                      : "hover:bg-[#5FBFF9]/10"
                   )}
                   title={isCollapsed ? item.label : undefined}
                 >
