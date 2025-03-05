@@ -43,6 +43,7 @@ const expenseCategories = [
 
 export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
   const { toast } = useToast();
+
   const form = useForm<Expense>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
@@ -62,24 +63,15 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
 
   const createExpense = useMutation({
     mutationFn: async (values: Expense) => {
-      const formData = new FormData();
-
-      // Ajouter tous les champs sauf invoiceFile
-      Object.entries(values).forEach(([key, value]) => {
-        if (key !== 'invoiceFile') {
-          formData.append(key, key === 'date' ? value.toISOString() : String(value));
-        }
-      });
-
-      // Ajouter le fichier s'il existe
-      const invoiceFile = form.getValues('invoiceFile');
-      if (invoiceFile?.[0]) {
-        formData.append('invoiceFile', invoiceFile[0]);
-      }
-
       const response = await fetch("/api/expenses", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...values,
+          date: values.date.toISOString(),
+        }),
       });
 
       if (!response.ok) {
