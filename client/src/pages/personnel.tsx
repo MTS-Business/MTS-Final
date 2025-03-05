@@ -26,12 +26,16 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
+interface PersonnelResponse extends Personnel {
+  id: number;
+}
+
 export default function Personnel() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: personnel = [], isLoading } = useQuery({
+  const { data: personnel = [], isLoading } = useQuery<PersonnelResponse[]>({
     queryKey: ["/api/personnel"],
   });
 
@@ -68,18 +72,20 @@ export default function Personnel() {
           throw new Error("Erreur lors de l'ajout de l'employé");
         }
 
+        // Si la réponse n'est pas du JSON, on retourne un succès simple
         const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          return response.json();
+        if (!contentType || !contentType.includes("application/json")) {
+          return { success: true };
         }
 
-        return { success: true };
+        return response.json();
       } catch (error) {
         console.error("Erreur lors de l'ajout:", error);
         throw new Error("Erreur lors de l'ajout de l'employé");
       }
     },
     onSuccess: () => {
+      // Invalider le cache et recharger les données
       queryClient.invalidateQueries({ queryKey: ["/api/personnel"] });
       toast({
         title: "Employé ajouté",
@@ -257,7 +263,7 @@ export default function Personnel() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {personnel.map((employee: any) => (
+            {Array.isArray(personnel) && personnel.map((employee) => (
               <TableRow key={employee.id}>
                 <TableCell>{employee.nom}</TableCell>
                 <TableCell>{employee.prenom}</TableCell>
@@ -270,7 +276,7 @@ export default function Personnel() {
                 </TableCell>
               </TableRow>
             ))}
-            {(!personnel || personnel.length === 0) && (
+            {(!Array.isArray(personnel) || personnel.length === 0) && (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground">
                   Aucun employé enregistré
