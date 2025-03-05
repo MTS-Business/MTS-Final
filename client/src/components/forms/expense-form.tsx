@@ -48,7 +48,7 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
     defaultValues: {
       description: "",
       amount: 0,
-      date: new Date().toISOString().split('T')[0],
+      date: new Date(),
       category: "Autre",
       invoiceFile: undefined,
       taxRate: 19, // TVA par défaut en Tunisie
@@ -59,9 +59,21 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
 
   const createExpense = useMutation({
     mutationFn: async (data: FormData) => {
+      const formData = new FormData();
+      // Convertir la date en format ISO string pour l'API
+      const date = data.get('date') as Date;
+      formData.append('date', date.toISOString());
+
+      // Ajouter les autres champs
+      for (const [key, value] of data.entries()) {
+        if (key !== 'date') {
+          formData.append(key, value);
+        }
+      }
+
       const res = await fetch("/api/expenses", {
         method: "POST",
-        body: data,
+        body: formData,
       });
       if (!res.ok) throw new Error("Failed to create expense");
       return res.json();
@@ -86,8 +98,10 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
     Object.keys(data).forEach(key => {
       if (key === 'invoiceFile' && data[key]?.length > 0) {
         formData.append('invoiceFile', data[key][0]);
+      } else if (key === 'date') {
+        formData.append('date', data[key].toISOString());
       } else {
-        formData.append(key, data[key]);
+        formData.append(key, data[key].toString());
       }
     });
     createExpense.mutate(formData);
@@ -215,7 +229,15 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
               <FormItem>
                 <FormLabel>Date</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input 
+                    type="date" 
+                    {...field}
+                    value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
+                    onChange={(e) => {
+                      const date = new Date(e.target.value);
+                      field.onChange(date);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
