@@ -57,7 +57,7 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
             isCollapsed ? "w-8" : "w-32"
           )}>
             <img 
-              src="/attached_assets/logo mts.png" 
+              src="/logo.png" 
               alt="MTS Gestion" 
               className="w-full h-auto"
             />

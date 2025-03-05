@@ -50,7 +50,7 @@ export default function Login() {
         <Card className="w-[400px] p-6 space-y-6">
           <div className="space-y-2 text-center">
             <img 
-              src="/attached_assets/logo mts.png" 
+              src="/logo.png" 
               alt="MTS Gestion" 
               className="w-48 mx-auto mb-4"
             />
