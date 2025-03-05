@@ -35,8 +35,9 @@ export default function Personnel() {
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: personnel = [], isLoading } = useQuery<PersonnelResponse[]>({
+  const { data: personnel, isLoading } = useQuery<PersonnelResponse[]>({
     queryKey: ["/api/personnel"],
+    initialData: [],
   });
 
   const form = useForm<Personnel>({
@@ -72,21 +73,17 @@ export default function Personnel() {
           throw new Error("Erreur lors de l'ajout de l'employé");
         }
 
-        // Si la réponse n'est pas du JSON, on retourne un succès simple
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          return { success: true };
-        }
-
-        return response.json();
+        // Assume success even if response is not JSON
+        return { success: true };
       } catch (error) {
         console.error("Erreur lors de l'ajout:", error);
         throw new Error("Erreur lors de l'ajout de l'employé");
       }
     },
     onSuccess: () => {
-      // Invalider le cache et recharger les données
-      queryClient.invalidateQueries({ queryKey: ["/api/personnel"] });
+      // Force a refetch instead of just invalidating
+      queryClient.fetchQuery({ queryKey: ["/api/personnel"] });
+
       toast({
         title: "Employé ajouté",
         description: "Le nouvel employé a été ajouté avec succès."
@@ -263,20 +260,21 @@ export default function Personnel() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {Array.isArray(personnel) && personnel.map((employee) => (
-              <TableRow key={employee.id}>
-                <TableCell>{employee.nom}</TableCell>
-                <TableCell>{employee.prenom}</TableCell>
-                <TableCell>{employee.cin}</TableCell>
-                <TableCell>{employee.fonction}</TableCell>
-                <TableCell>{Number(employee.salaireBrut).toFixed(3)} DT</TableCell>
-                <TableCell>{Number(employee.prime).toFixed(3)} DT</TableCell>
-                <TableCell>
-                  {format(new Date(employee.dateEmbauche), "dd MMM yyyy", { locale: fr })}
-                </TableCell>
-              </TableRow>
-            ))}
-            {(!Array.isArray(personnel) || personnel.length === 0) && (
+            {personnel && personnel.length > 0 ? (
+              personnel.map((employee) => (
+                <TableRow key={employee.id}>
+                  <TableCell>{employee.nom}</TableCell>
+                  <TableCell>{employee.prenom}</TableCell>
+                  <TableCell>{employee.cin}</TableCell>
+                  <TableCell>{employee.fonction}</TableCell>
+                  <TableCell>{Number(employee.salaireBrut).toFixed(3)} DT</TableCell>
+                  <TableCell>{Number(employee.prime).toFixed(3)} DT</TableCell>
+                  <TableCell>
+                    {format(new Date(employee.dateEmbauche), "dd MMM yyyy", { locale: fr })}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground">
                   Aucun employé enregistré
