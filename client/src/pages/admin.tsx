@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -25,11 +27,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Edit, Trash, Lock } from "lucide-react";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+// Données de test pour le développement
 const initialUsers = [
   {
     id: 1,
@@ -50,10 +51,10 @@ const initialUsers = [
 ];
 
 const roles = [
-  { id: "admin", label: "Administrateur", pages: ["*"] },
-  { id: "accountant", label: "Comptable", pages: ["/invoices", "/expenses", "/sales"] },
-  { id: "support", label: "Support", pages: ["/customers", "/messages"] },
-  { id: "user", label: "Utilisateur", pages: ["/dashboard", "/profile"] }
+  { id: "admin", label: "Administrateur" },
+  { id: "accountant", label: "Comptable" },
+  { id: "support", label: "Support" },
+  { id: "user", label: "Utilisateur" }
 ];
 
 const pages = [
@@ -70,11 +71,11 @@ const pages = [
 
 export default function Admin() {
   const { toast } = useToast();
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const [isOpen, setIsOpen] = useState(false);
   const [isAccessOpen, setIsAccessOpen] = useState(false);
   const [selectedPages, setSelectedPages] = useState<string[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [users, setUsers] = useState(initialUsers);
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
@@ -82,30 +83,76 @@ export default function Admin() {
     password: "",
   });
 
-  const handleCreateUser = () => {
-    // Créer un nouvel utilisateur avec un ID unique
-    const newUserData = {
-      id: users.length + 1,
-      name: newUser.name,
-      email: newUser.email,
-      role: roles.find(r => r.id === newUser.role)?.label || "Utilisateur",
-      avatar: "/avatar.png", // Avatar par défaut
-      status: "active"
-    };
+  const { data: users = initialUsers, isLoading } = useQuery({
+    queryKey: ["/api/users"],
+    initialData: initialUsers, //Added to prevent initial blank table
+  });
 
-    // Ajouter le nouvel utilisateur à la liste
-    setUsers([...users, newUserData]);
+  const createUser = useMutation({
+    mutationFn: async (values: typeof newUser) => {
+      try {
+        const response = await fetch("/api/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        });
 
-    toast({
-      title: "Utilisateur créé",
-      description: `Le nouvel utilisateur ${newUser.name} a été créé avec succès.`
-    });
-    setIsCreateOpen(false);
-    setNewUser({ name: "", email: "", role: "", password: "" });
-  };
+        if (!response.ok) {
+          throw new Error("Erreur lors de l'ajout de l'utilisateur");
+        }
+
+        // Simuler une réponse réussie
+        const newUserData = {
+          id: users.length + 1,
+          name: values.name,
+          email: values.email,
+          role: roles.find(r => r.id === values.role)?.label || "Utilisateur",
+          avatar: "/avatar.png",
+          status: "active"
+        };
+
+        // Mettre à jour le cache avec le nouvel utilisateur
+        queryClient.setQueryData(["/api/users"], (old: typeof users = []) => {
+          return [...old, newUserData];
+        });
+
+        return newUserData;
+      } catch (error) {
+        console.error("Erreur lors de l'ajout:", error);
+        throw new Error("Erreur lors de l'ajout de l'utilisateur");
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: "Utilisateur créé",
+        description: "Le nouvel utilisateur a été créé avec succès."
+      });
+      setIsOpen(false);
+      setNewUser({ name: "", email: "", role: "", password: "" });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   const handleDeleteUser = (userId: number) => {
-    setUsers(users.filter(user => user.id !== userId));
+    queryClient.setQueryData(["/api/users"], (oldUsers) =>
+      oldUsers.filter((user) => user.id !== userId)
+    );
     toast({
       title: "Utilisateur supprimé",
       description: "L'utilisateur a été supprimé avec succès."
@@ -140,7 +187,7 @@ export default function Admin() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Administration</h1>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button className="bg-[#0077B6] text-white hover:bg-[#0077B6]/90">
               <Plus className="mr-2 h-4 w-4" />
@@ -198,9 +245,10 @@ export default function Admin() {
               </div>
               <Button
                 className="w-full bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
-                onClick={handleCreateUser}
+                onClick={() => createUser.mutate(newUser)}
+                disabled={createUser.isPending}
               >
-                Créer l'utilisateur
+                {createUser.isPending ? "Création en cours..." : "Créer l'utilisateur"}
               </Button>
             </div>
           </DialogContent>
@@ -286,8 +334,8 @@ export default function Admin() {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="icon"
                       onClick={() => handleOpenAccess(user)}
                     >

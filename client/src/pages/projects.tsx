@@ -7,7 +7,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -16,11 +15,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Calendar } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-// Type pour une tâche
+// Données de test
+const mockPersonnel = [
+  { id: 1, name: "Sophie Martin" },
+  { id: 2, name: "Marc Dubois" },
+  { id: 3, name: "Julie Bernard" },
+];
+
+const mockTasks = [
+  {
+    id: 1,
+    title: "Mise à jour du système",
+    description: "Installer les dernières mises à jour de sécurité",
+    assignees: ["Sophie Martin"],
+    status: "todo",
+    priority: "high",
+  },
+  {
+    id: 2,
+    title: "Formation client",
+    description: "Session de formation pour le nouveau logiciel",
+    assignees: ["Marc Dubois", "Julie Bernard"],
+    status: "in_progress",
+    priority: "medium",
+  },
+];
+
 interface Task {
   id: number;
   title: string;
@@ -30,58 +55,89 @@ interface Task {
   priority: "low" | "medium" | "high";
 }
 
-// Données de test
-const initialPersonnel = [
-  { id: 1, name: "Sophie Martin" },
-  { id: 2, name: "Marc Dubois" },
-  { id: 3, name: "Julie Bernard" },
-];
-
 export default function Projects() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [newTask, setNewTask] = useState<Partial<Task>>({
     title: "",
     description: "",
-    assignees: [],
     status: "todo",
     priority: "medium"
   });
-  
-  const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
 
-  const handleCreate = () => {
-    const task: Task = {
-      id: tasks.length + 1,
-      title: newTask.title || "",
-      description: newTask.description || "",
-      assignees: selectedAssignees,
-      status: newTask.status as "todo" | "in_progress" | "done",
-      priority: newTask.priority as "low" | "medium" | "high"
-    };
+  const { data: tasks = mockTasks } = useQuery({
+    queryKey: ["/api/tasks"],
+    initialData: mockTasks,
+  });
 
-    setTasks([...tasks, task]);
-    setIsOpen(false);
-    setNewTask({
-      title: "",
-      description: "",
-      assignees: [],
-      status: "todo",
-      priority: "medium"
-    });
-    setSelectedAssignees([]);
+  const createTask = useMutation({
+    mutationFn: async (values: Partial<Task>) => {
+      try {
+        const response = await fetch("/api/tasks", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...values,
+            assignees: selectedAssignees,
+          }),
+        });
 
-    toast({
-      title: "Tâche créée",
-      description: "La nouvelle tâche a été créée avec succès."
-    });
-  };
+        if (!response.ok) {
+          throw new Error("Erreur lors de la création de la tâche");
+        }
+
+        // Simuler une réponse réussie
+        const newTaskData = {
+          id: tasks.length + 1,
+          ...values,
+          assignees: selectedAssignees,
+        } as Task;
+
+        // Mettre à jour le cache avec la nouvelle tâche
+        queryClient.setQueryData(["/api/tasks"], (old: Task[] = []) => {
+          return [...old, newTaskData];
+        });
+
+        return newTaskData;
+      } catch (error) {
+        console.error("Erreur lors de la création:", error);
+        throw new Error("Erreur lors de la création de la tâche");
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: "Tâche créée",
+        description: "La nouvelle tâche a été créée avec succès."
+      });
+      setIsOpen(false);
+      setNewTask({
+        title: "",
+        description: "",
+        status: "todo",
+        priority: "medium"
+      });
+      setSelectedAssignees([]);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const moveTask = (taskId: number, newStatus: Task["status"]) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, status: newStatus } : task
-    ));
+    // Mettre à jour le cache avec le nouveau statut
+    queryClient.setQueryData(["/api/tasks"], (oldTasks: Task[] = []) => 
+      oldTasks.map(task => 
+        task.id === taskId ? { ...task, status: newStatus } : task
+      )
+    );
   };
 
   const getPriorityColor = (priority: Task["priority"]) => {
@@ -104,12 +160,13 @@ export default function Projects() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Gestion des Projets</h1>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#0077B6] text-white hover:bg-[#0077B6]/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Nouvelle tâche
-            </Button>
-          </DialogTrigger>
+          <Button 
+            onClick={() => setIsOpen(true)}
+            className="bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nouvelle tâche
+          </Button>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Créer une nouvelle tâche</DialogTitle>
@@ -134,7 +191,7 @@ export default function Projects() {
               <div>
                 <Label>Assignés</Label>
                 <div className="space-y-2">
-                  {initialPersonnel.map((person) => (
+                  {mockPersonnel.map((person) => (
                     <div key={person.id} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -171,9 +228,10 @@ export default function Projects() {
               </div>
               <Button
                 className="w-full bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
-                onClick={handleCreate}
+                onClick={() => createTask.mutate(newTask)}
+                disabled={createTask.isPending}
               >
-                Créer la tâche
+                {createTask.isPending ? "Création en cours..." : "Créer la tâche"}
               </Button>
             </div>
           </DialogContent>
