@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertExpenseSchema } from "@shared/schema";
+import { expenseSchema } from "@/shared/schema";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -44,6 +44,7 @@ const expenseCategories = [
 export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
   const { toast } = useToast();
   const form = useForm({
+    resolver: zodResolver(expenseSchema),
     defaultValues: {
       description: "",
       category: "Autre",
@@ -61,7 +62,19 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
   };
 
   const createExpense = useMutation({
-    mutationFn: async (formData: FormData) => {
+    mutationFn: async (data: any) => {
+      const formData = new FormData();
+
+      Object.keys(data).forEach(key => {
+        if (key === 'invoiceFile' && data[key]?.[0]) {
+          formData.append('invoiceFile', data[key][0]);
+        } else if (key === 'date') {
+          formData.append('date', data[key].toISOString());
+        } else {
+          formData.append(key, data[key].toString());
+        }
+      });
+
       const response = await fetch("/api/expenses", {
         method: "POST",
         body: formData,
@@ -81,7 +94,7 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
       });
       onSuccess?.();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Erreur",
         description: error.message,
@@ -90,25 +103,6 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
     },
   });
 
-  const onSubmit = (data: any) => {
-    const formData = new FormData();
-
-    // Ajout des champs de base
-    formData.append("description", data.description);
-    formData.append("category", data.category);
-    formData.append("priceHT", data.priceHT.toString());
-    formData.append("taxRate", data.taxRate.toString());
-    formData.append("priceTTC", data.priceTTC.toString());
-    formData.append("date", data.date.toISOString());
-
-    // Ajout du fichier si présent
-    if (data.invoiceFile?.[0]) {
-      formData.append("invoiceFile", data.invoiceFile[0]);
-    }
-
-    createExpense.mutate(formData);
-  };
-
   return (
     <div className="space-y-4">
       <DialogHeader>
@@ -116,7 +110,7 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
       </DialogHeader>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(createExpense.mutate)} className="space-y-4">
           <FormField
             control={form.control}
             name="description"
