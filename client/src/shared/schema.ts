@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createInsertSchema } from "drizzle-zod";
 
 export const expenseSchema = z.object({
   description: z.string().min(1, "La description est requise"),
@@ -11,3 +12,9 @@ export const expenseSchema = z.object({
 });
 
 export type Expense = z.infer<typeof expenseSchema>;
+
+export const insertExpenseSchema = expenseSchema.omit({ 
+  id: true,
+  createdAt: true,
+  updatedAt: true 
+});

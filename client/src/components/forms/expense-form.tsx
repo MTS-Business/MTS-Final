@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { expenseSchema } from "@/shared/schema";
+import { expenseSchema, type Expense } from "@/shared/schema";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -43,7 +43,7 @@ const expenseCategories = [
 
 export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
   const { toast } = useToast();
-  const form = useForm({
+  const form = useForm<Expense>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       description: "",
@@ -52,7 +52,6 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
       taxRate: 19,
       priceTTC: 0,
       date: new Date(),
-      invoiceFile: undefined,
     },
   });
 
@@ -62,27 +61,20 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
   };
 
   const createExpense = useMutation({
-    mutationFn: async (data: any) => {
-      // Créer un nouvel objet avec les données validées
-      const expenseData = {
-        description: data.description || "",
-        category: data.category || "Autre",
-        priceHT: Number(data.priceHT) || 0,
-        taxRate: Number(data.taxRate) || 19,
-        priceTTC: Number(data.priceTTC) || 0,
-        date: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
-      };
-
+    mutationFn: async (values: Expense) => {
       const formData = new FormData();
 
-      // Ajouter les données validées au FormData
-      Object.entries(expenseData).forEach(([key, value]) => {
-        formData.append(key, String(value));
+      // Ajouter tous les champs sauf invoiceFile
+      Object.entries(values).forEach(([key, value]) => {
+        if (key !== 'invoiceFile') {
+          formData.append(key, key === 'date' ? value.toISOString() : String(value));
+        }
       });
 
       // Ajouter le fichier s'il existe
-      if (data.invoiceFile?.[0]) {
-        formData.append('invoiceFile', data.invoiceFile[0]);
+      const invoiceFile = form.getValues('invoiceFile');
+      if (invoiceFile?.[0]) {
+        formData.append('invoiceFile', invoiceFile[0]);
       }
 
       const response = await fetch("/api/expenses", {
@@ -120,7 +112,7 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
       </DialogHeader>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(data => createExpense.mutate(data))} className="space-y-4">
+        <form onSubmit={form.handleSubmit((data) => createExpense.mutate(data))} className="space-y-4">
           <FormField
             control={form.control}
             name="description"
@@ -238,11 +230,10 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
                 <FormLabel>Date</FormLabel>
                 <FormControl>
                   <Input 
-                    type="date" 
+                    type="date"
                     value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
                     onChange={(e) => {
-                      const date = new Date(e.target.value);
-                      field.onChange(date);
+                      field.onChange(new Date(e.target.value));
                     }}
                   />
                 </FormControl>
