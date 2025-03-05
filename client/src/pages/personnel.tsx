@@ -22,69 +22,89 @@ import { Label } from "@/components/ui/label";
 import { Plus, Edit, Trash } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { personnelSchema, type Personnel } from "@/shared/schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 export default function Personnel() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
-  const [personnel, setPersonnel] = useState([
-    {
-      id: 1,
-      nom: "Martin",
-      prenom: "Sophie",
-      cin: "12345678",
-      fonction: "Comptable",
-      salaireBrut: 2000.000,
-      prime: 200.000,
-    },
-  ]);
 
-  const [newEmployee, setNewEmployee] = useState({
-    nom: "",
-    prenom: "",
-    cin: "",
-    fonction: "",
-    salaireBrut: 0,
-    prime: 0,
+  const { data: personnel = [], isLoading } = useQuery({
+    queryKey: ["/api/personnel"],
   });
 
-  const handleCreate = () => {
-    const newEmployeeData = {
-      id: personnel.length + 1,
-      ...newEmployee,
-    };
+  const { data: projets = [] } = useQuery({
+    queryKey: ["/api/projets"],
+  });
 
-    setPersonnel([...personnel, newEmployeeData]);
-    setIsOpen(false);
-    setNewEmployee({ nom: "", prenom: "", cin: "", fonction: "", salaireBrut: 0, prime: 0 });
+  const form = useForm<Personnel>({
+    resolver: zodResolver(personnelSchema),
+    defaultValues: {
+      nom: "",
+      prenom: "",
+      cin: "",
+      fonction: "",
+      salaireBrut: 0,
+      prime: 0,
+      dateEmbauche: new Date(),
+      competences: [],
+      projetsAssignes: [],
+    },
+  });
 
-    toast({
-      title: "Employé ajouté",
-      description: "Le nouvel employé a été ajouté avec succès."
-    });
-  };
+  const createPersonnel = useMutation({
+    mutationFn: async (values: Personnel) => {
+      const response = await fetch("/api/personnel", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...values,
+          dateEmbauche: values.dateEmbauche.toISOString(),
+        }),
+      });
 
-  const handleEdit = () => {
-    setPersonnel(personnel.map(emp => 
-      emp.id === selectedEmployee.id ? selectedEmployee : emp
-    ));
-    setIsEditOpen(false);
-    toast({
-      title: "Employé modifié",
-      description: "Les informations de l'employé ont été mises à jour avec succès."
-    });
-  };
+      if (!response.ok) {
+        throw new Error("Erreur lors de l'ajout de l'employé");
+      }
 
-  const handleDelete = () => {
-    setPersonnel(personnel.filter(emp => emp.id !== selectedEmployee.id));
-    setIsDeleteOpen(false);
-    toast({
-      title: "Employé supprimé",
-      description: "L'employé a été supprimé avec succès."
-    });
-  };
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/personnel"] });
+      toast({
+        title: "Employé ajouté",
+        description: "Le nouvel employé a été ajouté avec succès."
+      });
+      setIsOpen(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -101,161 +121,127 @@ export default function Personnel() {
             <DialogHeader>
               <DialogTitle>Ajouter un nouvel employé</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="nom">Nom</Label>
-                <Input
-                  id="nom"
-                  value={newEmployee.nom}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, nom: e.target.value })}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit((data) => createPersonnel.mutate(data))} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="nom"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div>
-                <Label htmlFor="prenom">Prénom</Label>
-                <Input
-                  id="prenom"
-                  value={newEmployee.prenom}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, prenom: e.target.value })}
+                <FormField
+                  control={form.control}
+                  name="prenom"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prénom</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div>
-                <Label htmlFor="cin">CIN</Label>
-                <Input
-                  id="cin"
-                  value={newEmployee.cin}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, cin: e.target.value })}
+                <FormField
+                  control={form.control}
+                  name="cin"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>CIN</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div>
-                <Label htmlFor="fonction">Fonction</Label>
-                <Input
-                  id="fonction"
-                  value={newEmployee.fonction}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, fonction: e.target.value })}
+                <FormField
+                  control={form.control}
+                  name="fonction"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fonction</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div>
-                <Label htmlFor="salaireBrut">Salaire Brut</Label>
-                <Input
-                  id="salaireBrut"
-                  type="number"
-                  step="0.001"
-                  value={newEmployee.salaireBrut}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, salaireBrut: parseFloat(e.target.value) })}
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="salaireBrut"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Salaire Brut</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.001"
+                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                            value={field.value}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="prime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Prime</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.001"
+                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                            value={field.value}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="dateEmbauche"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date d'embauche</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date"
+                          value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
+                          onChange={(e) => field.onChange(new Date(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div>
-                <Label htmlFor="prime">Prime</Label>
-                <Input
-                  id="prime"
-                  type="number"
-                  step="0.001"
-                  value={newEmployee.prime}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, prime: parseFloat(e.target.value) })}
-                />
-              </div>
-              <Button
-                className="w-full bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
-                onClick={handleCreate}
-              >
-                Ajouter l'employé
-              </Button>
-            </div>
+                <Button 
+                  type="submit"
+                  className="w-full bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
+                  disabled={createPersonnel.isPending}
+                >
+                  {createPersonnel.isPending ? "Ajout en cours..." : "Ajouter l'employé"}
+                </Button>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
       </div>
-
-      {/* Modal d'édition */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Modifier l'employé</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-nom">Nom</Label>
-              <Input
-                id="edit-nom"
-                value={selectedEmployee?.nom || ""}
-                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, nom: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-prenom">Prénom</Label>
-              <Input
-                id="edit-prenom"
-                value={selectedEmployee?.prenom || ""}
-                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, prenom: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-cin">CIN</Label>
-              <Input
-                id="edit-cin"
-                value={selectedEmployee?.cin || ""}
-                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, cin: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-fonction">Fonction</Label>
-              <Input
-                id="edit-fonction"
-                value={selectedEmployee?.fonction || ""}
-                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, fonction: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-salaireBrut">Salaire Brut</Label>
-              <Input
-                id="edit-salaireBrut"
-                type="number"
-                step="0.001"
-                value={selectedEmployee?.salaireBrut || 0}
-                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, salaireBrut: parseFloat(e.target.value) })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-prime">Prime</Label>
-              <Input
-                id="edit-prime"
-                type="number"
-                step="0.001"
-                value={selectedEmployee?.prime || 0}
-                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, prime: parseFloat(e.target.value) })}
-              />
-            </div>
-            <Button
-              className="w-full bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
-              onClick={handleEdit}
-            >
-              Enregistrer les modifications
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de confirmation de suppression */}
-      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmer la suppression</DialogTitle>
-            <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer cet employé ? Cette action est irréversible.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>
-              Annuler
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDelete}
-            >
-              Supprimer
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <Card>
         <Table>
@@ -267,11 +253,12 @@ export default function Personnel() {
               <TableHead>Fonction</TableHead>
               <TableHead>Salaire Brut</TableHead>
               <TableHead>Prime</TableHead>
+              <TableHead>Date d'embauche</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {personnel.map((employee) => (
+            {personnel.map((employee: any) => (
               <TableRow key={employee.id}>
                 <TableCell>{employee.nom}</TableCell>
                 <TableCell>{employee.prenom}</TableCell>
@@ -279,6 +266,9 @@ export default function Personnel() {
                 <TableCell>{employee.fonction}</TableCell>
                 <TableCell>{employee.salaireBrut.toFixed(3)}</TableCell>
                 <TableCell>{employee.prime.toFixed(3)}</TableCell>
+                <TableCell>
+                  {format(new Date(employee.dateEmbauche), "dd MMM yyyy", { locale: fr })}
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Button 
@@ -305,6 +295,13 @@ export default function Personnel() {
                 </TableCell>
               </TableRow>
             ))}
+            {personnel.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                  Aucun employé enregistré
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </Card>

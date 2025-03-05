@@ -10,3 +10,17 @@ export const expenseSchema = z.object({
 });
 
 export type Expense = z.infer<typeof expenseSchema>;
+
+export const personnelSchema = z.object({
+  nom: z.string().min(1, "Le nom est requis"),
+  prenom: z.string().min(1, "Le prénom est requis"),
+  cin: z.string().min(8, "Le CIN doit contenir au moins 8 caractères"),
+  fonction: z.string().min(1, "La fonction est requise"),
+  salaireBrut: z.number().min(0, "Le salaire brut doit être positif"),
+  prime: z.number().min(0, "La prime doit être positive"),
+  dateEmbauche: z.date(),
+  competences: z.array(z.string()).optional(),
+  projetsAssignes: z.array(z.number()).optional(),
+});
+
+export type Personnel = z.infer<typeof personnelSchema>;
