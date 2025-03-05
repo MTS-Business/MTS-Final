@@ -44,39 +44,34 @@ const expenseCategories = [
 export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
   const { toast } = useToast();
   const form = useForm({
-    resolver: zodResolver(insertExpenseSchema),
     defaultValues: {
       description: "",
-      amount: 0,
-      date: new Date(),
       category: "Autre",
-      invoiceFile: undefined,
-      taxRate: 19, // TVA par défaut en Tunisie
       priceHT: 0,
-      priceTTC: 0
+      taxRate: 19,
+      priceTTC: 0,
+      date: new Date(),
+      invoiceFile: undefined,
     },
   });
 
+  const calculatePrices = (priceHT: number, taxRate: number) => {
+    const priceTTC = priceHT * (1 + taxRate / 100);
+    form.setValue("priceTTC", Number(priceTTC.toFixed(3)));
+  };
+
   const createExpense = useMutation({
-    mutationFn: async (data: FormData) => {
-      const formData = new FormData();
-      // Convertir la date en format ISO string pour l'API
-      const date = data.get('date') as Date;
-      formData.append('date', date.toISOString());
-
-      // Ajouter les autres champs
-      for (const [key, value] of data.entries()) {
-        if (key !== 'date') {
-          formData.append(key, value);
-        }
-      }
-
-      const res = await fetch("/api/expenses", {
+    mutationFn: async (formData: FormData) => {
+      const response = await fetch("/api/expenses", {
         method: "POST",
         body: formData,
       });
-      if (!res.ok) throw new Error("Failed to create expense");
-      return res.json();
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de l'ajout de la dépense");
+      }
+
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
@@ -86,24 +81,31 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
       });
       onSuccess?.();
     },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
-
-  const calculatePrices = (priceHT: number, taxRate: number) => {
-    const priceTTC = priceHT * (1 + taxRate / 100);
-    form.setValue("priceTTC", Number(priceTTC.toFixed(3)));
-  };
 
   const onSubmit = (data: any) => {
     const formData = new FormData();
-    Object.keys(data).forEach(key => {
-      if (key === 'invoiceFile' && data[key]?.length > 0) {
-        formData.append('invoiceFile', data[key][0]);
-      } else if (key === 'date') {
-        formData.append('date', data[key].toISOString());
-      } else {
-        formData.append(key, data[key].toString());
-      }
-    });
+
+    // Ajout des champs de base
+    formData.append("description", data.description);
+    formData.append("category", data.category);
+    formData.append("priceHT", data.priceHT.toString());
+    formData.append("taxRate", data.taxRate.toString());
+    formData.append("priceTTC", data.priceTTC.toString());
+    formData.append("date", data.date.toISOString());
+
+    // Ajout du fichier si présent
+    if (data.invoiceFile?.[0]) {
+      formData.append("invoiceFile", data.invoiceFile[0]);
+    }
+
     createExpense.mutate(formData);
   };
 
@@ -142,8 +144,9 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
                       step="0.001"
                       {...field}
                       onChange={(e) => {
-                        field.onChange(Number(e.target.value));
-                        calculatePrices(Number(e.target.value), form.getValues("taxRate"));
+                        const value = Number(e.target.value);
+                        field.onChange(value);
+                        calculatePrices(value, form.getValues("taxRate"));
                       }}
                     />
                   </FormControl>
@@ -164,8 +167,9 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
                       step="1"
                       {...field}
                       onChange={(e) => {
-                        field.onChange(Number(e.target.value));
-                        calculatePrices(form.getValues("priceHT"), Number(e.target.value));
+                        const value = Number(e.target.value);
+                        field.onChange(value);
+                        calculatePrices(form.getValues("priceHT"), value);
                       }}
                     />
                   </FormControl>
@@ -231,7 +235,6 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
                 <FormControl>
                   <Input 
                     type="date" 
-                    {...field}
                     value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
                     onChange={(e) => {
                       const date = new Date(e.target.value);
@@ -258,7 +261,7 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
 
           <Button 
             type="submit" 
-            className="w-full"
+            className="w-full bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
             disabled={createExpense.isPending}
           >
             {createExpense.isPending ? "Ajout en cours..." : "Ajouter la dépense"}
