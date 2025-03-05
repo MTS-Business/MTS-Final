@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function Header() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { userInfo } = useUser();
+  const { userInfo, logout } = useUser();
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function Header() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
+    logout();
     toast({
       title: "Déconnexion réussie",
       description: "Vous avez été déconnecté avec succès."
@@ -63,18 +63,20 @@ export default function Header() {
     setLocation("/login");
   };
 
+  if (!userInfo) return null;
+
   return (
     <div className="flex items-center justify-between px-8 py-4 border-b transition-all duration-300">
       <div className="flex items-center gap-4">
         <Avatar className="w-10 h-10">
-          <AvatarImage src={userInfo?.avatar} />
+          <AvatarImage src={userInfo.avatar} />
           <AvatarFallback>
-            {userInfo?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+            {userInfo.name.split(' ').map(n => n[0]).join('')}
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
           <h2 className="text-lg font-semibold text-foreground transition-colors duration-300">
-            Hello, {userInfo?.name || 'Utilisateur'} 👋
+            Hello, {userInfo.name} 👋
           </h2>
           <p className="text-sm text-muted-foreground transition-colors duration-300">
             {new Date().toLocaleDateString('fr-FR', {
@@ -112,9 +114,9 @@ export default function Header() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Avatar className="cursor-pointer transition-all duration-300 hover:scale-105">
-              <AvatarImage src={userInfo?.avatar} />
+              <AvatarImage src={userInfo.avatar} />
               <AvatarFallback>
-                {userInfo?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                {userInfo.name.split(' ').map(n => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>

@@ -13,31 +13,55 @@ interface UserInfo {
 }
 
 interface UserContextType {
-  userInfo: UserInfo;
+  userInfo: UserInfo | null;
   updateUserInfo: (info: Partial<UserInfo>) => void;
+  isAuthenticated: boolean;
+  login: (username: string, password: string) => boolean;
+  logout: () => void;
 }
+
+const initialUserInfo: UserInfo = {
+  name: "Admin",
+  email: "admin@mtsgestion.com",
+  role: "Administrateur",
+  avatar: "/avatar.png",
+  notifications: {
+    email: true,
+    push: true,
+    messages: true
+  }
+};
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [userInfo, setUserInfo] = React.useState<UserInfo>({
-    name: "John Cena",
-    email: "john.cena@example.com",
-    role: "Administrateur",
-    avatar: "/avatar.png",
-    notifications: {
-      email: true,
-      push: true,
-      messages: true
-    }
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem("isAuthenticated") === "true";
   });
 
   const updateUserInfo = (info: Partial<UserInfo>) => {
-    setUserInfo(prev => ({ ...prev, ...info }));
+    setUserInfo(prev => prev ? { ...prev, ...info } : null);
+  };
+
+  const login = (username: string, password: string) => {
+    if (username === "admin" && password === "admin") {
+      setIsAuthenticated(true);
+      setUserInfo(initialUserInfo);
+      localStorage.setItem("isAuthenticated", "true");
+      return true;
+    }
+    return false;
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    setUserInfo(null);
+    localStorage.removeItem("isAuthenticated");
   };
 
   return (
-    <UserContext.Provider value={{ userInfo, updateUserInfo }}>
+    <UserContext.Provider value={{ userInfo, updateUserInfo, isAuthenticated, login, logout }}>
       {children}
     </UserContext.Provider>
   );

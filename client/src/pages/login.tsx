@@ -5,10 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { useUser } from "@/context/user-context";
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { login } = useUser();
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
@@ -16,8 +18,7 @@ export default function Login() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (credentials.username === "admin" && credentials.password === "admin") {
-      localStorage.setItem("isAuthenticated", "true");
+    if (login(credentials.username, credentials.password)) {
       toast({
         title: "Connexion réussie",
         description: "Bienvenue dans votre espace de gestion",
@@ -26,7 +27,7 @@ export default function Login() {
     } else {
       toast({
         title: "Erreur de connexion",
-        description: "Identifiants incorrects",
+        description: "Identifiants incorrects (utilisez admin/admin)",
         variant: "destructive",
       });
     }
