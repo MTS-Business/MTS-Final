@@ -13,7 +13,8 @@ import {
   Shield,
   Kanban,
   UserCircle,
-  Calculator
+  Calculator,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -31,6 +32,7 @@ const navItems = [
 ];
 
 const adminItems = [
+  { href: "/company-info", label: "Informations société", icon: Building2 },
   { href: "/admin", label: "Administration", icon: Shield },
   { href: "/comptabilite", label: "Comptabilité", icon: Calculator },
 ];

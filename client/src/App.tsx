@@ -20,6 +20,7 @@ import Personnel from "@/pages/personnel";
 import Comptabilite from "@/pages/comptabilite";
 import NotFound from "@/pages/not-found";
 import { useState } from "react";
+import CompanyInfo from "@/pages/company-info";
 
 function Router() {
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
@@ -40,6 +41,7 @@ function Router() {
             <Route path="/sales" component={Sales} />
             <Route path="/messages" component={Messages} />
             <Route path="/profile" component={Profile} />
+            <Route path="/company-info" component={CompanyInfo} />
             <Route path="/admin" component={Admin} />
             <Route path="/projects" component={Projects} />
             <Route path="/personnel" component={Personnel} />
