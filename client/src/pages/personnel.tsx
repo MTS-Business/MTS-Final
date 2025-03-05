@@ -12,14 +12,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Plus, Edit, Trash } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -34,16 +30,9 @@ export default function Personnel() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
 
   const { data: personnel = [], isLoading } = useQuery({
     queryKey: ["/api/personnel"],
-  });
-
-  const { data: projets = [] } = useQuery({
-    queryKey: ["/api/projets"],
   });
 
   const form = useForm<Personnel>({
@@ -56,29 +45,39 @@ export default function Personnel() {
       salaireBrut: 0,
       prime: 0,
       dateEmbauche: new Date(),
-      competences: [],
-      projetsAssignes: [],
     },
   });
 
   const createPersonnel = useMutation({
     mutationFn: async (values: Personnel) => {
-      const response = await fetch("/api/personnel", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...values,
-          dateEmbauche: values.dateEmbauche.toISOString(),
-        }),
-      });
+      try {
+        const response = await fetch("/api/personnel", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...values,
+            dateEmbauche: values.dateEmbauche.toISOString(),
+            salaireBrut: Number(values.salaireBrut),
+            prime: Number(values.prime),
+          }),
+        });
 
-      if (!response.ok) {
+        if (!response.ok) {
+          throw new Error("Erreur lors de l'ajout de l'employé");
+        }
+
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          return response.json();
+        }
+
+        return { success: true };
+      } catch (error) {
+        console.error("Erreur lors de l'ajout:", error);
         throw new Error("Erreur lors de l'ajout de l'employé");
       }
-
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/personnel"] });
@@ -111,12 +110,13 @@ export default function Personnel() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Personnel</h1>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#0077B6] text-white hover:bg-[#0077B6]/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Nouvel employé
-            </Button>
-          </DialogTrigger>
+          <Button 
+            onClick={() => setIsOpen(true)}
+            className="bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nouvel employé
+          </Button>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Ajouter un nouvel employé</DialogTitle>
@@ -254,7 +254,6 @@ export default function Personnel() {
               <TableHead>Salaire Brut</TableHead>
               <TableHead>Prime</TableHead>
               <TableHead>Date d'embauche</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -264,40 +263,16 @@ export default function Personnel() {
                 <TableCell>{employee.prenom}</TableCell>
                 <TableCell>{employee.cin}</TableCell>
                 <TableCell>{employee.fonction}</TableCell>
-                <TableCell>{employee.salaireBrut.toFixed(3)}</TableCell>
-                <TableCell>{employee.prime.toFixed(3)}</TableCell>
+                <TableCell>{Number(employee.salaireBrut).toFixed(3)} DT</TableCell>
+                <TableCell>{Number(employee.prime).toFixed(3)} DT</TableCell>
                 <TableCell>
                   {format(new Date(employee.dateEmbauche), "dd MMM yyyy", { locale: fr })}
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        setSelectedEmployee(employee);
-                        setIsEditOpen(true);
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        setSelectedEmployee(employee);
-                        setIsDeleteOpen(true);
-                      }}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
               </TableRow>
             ))}
-            {personnel.length === 0 && (
+            {(!personnel || personnel.length === 0) && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
+                <TableCell colSpan={7} className="text-center text-muted-foreground">
                   Aucun employé enregistré
                 </TableCell>
               </TableRow>
