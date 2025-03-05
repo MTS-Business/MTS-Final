@@ -4,51 +4,80 @@ import { Card } from "@/components/ui/card";
 import { Package, Users, Receipt, DollarSign, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  AreaChart,
-  Area,
 } from "recharts";
 
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+}
+
+interface Customer {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface Invoice {
+  id: number;
+  reference: string;
+  total: number;
+  date: string;
+}
+
+interface Expense {
+  id: number;
+  description: string;
+  amount: number;
+  date: string;
+}
+
+interface Task {
+  id: number;
+  status: string;
+}
+
 export default function Dashboard() {
-  // Récupérer les données en temps réel
-  const { data: products = [] } = useQuery({ 
+  // Récupérer les données en temps réel avec les types corrects
+  const { data: products = [] } = useQuery<Product[]>({ 
     queryKey: ["/api/products"],
   });
 
-  const { data: customers = [] } = useQuery({ 
+  const { data: customers = [] } = useQuery<Customer[]>({ 
     queryKey: ["/api/customers"],
   });
 
-  const { data: invoices = [] } = useQuery({ 
+  const { data: invoices = [] } = useQuery<Invoice[]>({ 
     queryKey: ["/api/invoices"],
   });
 
-  const { data: expenses = [] } = useQuery({ 
+  const { data: expenses = [] } = useQuery<Expense[]>({ 
     queryKey: ["/api/expenses"],
   });
 
-  const { data: tasks = [] } = useQuery({ 
+  const { data: tasks = [] } = useQuery<Task[]>({ 
     queryKey: ["/api/tasks"],
   });
 
-  // Calculer les statistiques
-  const totalProducts = products?.length || 0;
-  const totalCustomers = customers?.length || 0;
-  const totalSales = invoices?.reduce((acc, inv) => acc + Number(inv.total), 0) || 0;
-  const totalExpenses = expenses?.reduce((acc, exp) => acc + Number(exp.amount), 0) || 0;
+  // Calculer les statistiques avec des valeurs par défaut sûres
+  const totalProducts = products.length;
+  const totalCustomers = customers.length;
+  const totalSales = invoices.reduce((acc, inv) => acc + Number(inv.total), 0);
+  const totalExpenses = expenses.reduce((acc, exp) => acc + Number(exp.amount), 0);
 
   // Calculer les tendances mensuelles
   const getMonthlyData = () => {
     const monthlyData = new Map();
 
     // Traiter les ventes
-    invoices?.forEach((invoice) => {
+    invoices.forEach((invoice) => {
       const date = new Date(invoice.date);
       const monthKey = date.toLocaleString('fr-FR', { month: 'short' });
       const currentTotal = monthlyData.get(monthKey)?.income || 0;
@@ -59,7 +88,7 @@ export default function Dashboard() {
     });
 
     // Traiter les dépenses
-    expenses?.forEach((expense) => {
+    expenses.forEach((expense) => {
       const date = new Date(expense.date);
       const monthKey = date.toLocaleString('fr-FR', { month: 'short' });
       const currentTotal = monthlyData.get(monthKey)?.expense || 0;
@@ -78,26 +107,23 @@ export default function Dashboard() {
 
   const monthlyData = getMonthlyData();
 
-  // Obtenir les transactions récentes
+  // Obtenir les transactions récentes avec typage strict
   const getRecentTransactions = () => {
     const allTransactions = [
-      // Transformer les factures en transactions
       ...invoices.map(invoice => ({
         name: `Facture ${invoice.reference}`,
         amount: Number(invoice.total),
         date: invoice.date,
-        type: "income"
+        type: "income" as const
       })),
-      // Transformer les dépenses en transactions
       ...expenses.map(expense => ({
         name: expense.description,
         amount: Number(expense.amount),
         date: expense.date,
-        type: "expense"
+        type: "expense" as const
       }))
     ];
 
-    // Trier par date décroissante et prendre les 5 plus récentes
     return allTransactions
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5);
@@ -115,7 +141,7 @@ export default function Dashboard() {
           value={`${(totalSales - totalExpenses).toFixed(3)} DT`}
           icon={<Wallet className="h-4 w-4 text-primary" />}
           percentage={{ 
-            value: Math.round(((totalSales - totalExpenses) / totalSales) * 100), 
+            value: totalSales > 0 ? Math.round(((totalSales - totalExpenses) / totalSales) * 100) : 0, 
             trend: totalSales > totalExpenses ? "up" : "down" 
           }}
           subtext="Solde actuel"
@@ -125,7 +151,7 @@ export default function Dashboard() {
           value={`${totalSales.toFixed(3)} DT`}
           icon={<Receipt className="h-4 w-4 text-primary" />}
           percentage={{ 
-            value: Math.round((invoices?.length || 0) / 30), 
+            value: invoices.length > 0 ? Math.round(invoices.length / 30) : 0, 
             trend: "up" 
           }}
           subtext="Moyenne par jour"
@@ -135,17 +161,19 @@ export default function Dashboard() {
           value={totalCustomers}
           icon={<Users className="h-4 w-4 text-primary" />}
           percentage={{ 
-            value: Math.round((customers?.length || 0) / 10) * 10, 
+            value: customers.length > 0 ? Math.round((customers.length / 10) * 10) : 0, 
             trend: "up" 
           }}
           subtext="clients actifs"
         />
         <DashboardCard
           title="Projets"
-          value={tasks?.length || 0}
+          value={tasks.length}
           icon={<Package className="h-4 w-4 text-primary" />}
           percentage={{ 
-            value: Math.round((tasks?.filter(t => t.status === "done")?.length || 0) / (tasks?.length || 1) * 100),
+            value: tasks.length > 0 
+              ? Math.round((tasks.filter(t => t.status === "done").length / tasks.length) * 100)
+              : 0,
             trend: "up" 
           }}
           subtext="projets en cours"
