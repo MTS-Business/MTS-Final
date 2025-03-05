@@ -3,8 +3,10 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { UserProvider } from "./context/user-context";
+import { ProtectedRoute } from "@/components/layout/protected-route";
 import Navbar from "@/components/layout/navbar";
 import Header from "@/components/layout/header";
+import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
 import Services from "@/pages/services";
@@ -18,38 +20,45 @@ import Admin from "@/pages/admin";
 import Projects from "@/pages/projects";
 import Personnel from "@/pages/personnel";
 import Comptabilite from "@/pages/comptabilite";
+import CompanyInfo from "@/pages/company-info";
 import NotFound from "@/pages/not-found";
 import { useState } from "react";
-import CompanyInfo from "@/pages/company-info";
 
 function Router() {
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
 
   return (
     <div className="min-h-screen bg-background transition-all duration-300">
-      <Navbar isCollapsed={isNavCollapsed} onCollapse={setIsNavCollapsed} />
-      <main className={`transition-all duration-300 ${isNavCollapsed ? 'pl-20' : 'pl-64'}`}>
-        <Header />
-        <div className="container mx-auto px-8 py-8">
-          <Switch>
-            <Route path="/" component={Dashboard} />
-            <Route path="/inventory" component={Inventory} />
-            <Route path="/services" component={Services} />
-            <Route path="/invoices" component={Invoices} />
-            <Route path="/customers" component={Customers} />
-            <Route path="/expenses" component={Expenses} />
-            <Route path="/sales" component={Sales} />
-            <Route path="/messages" component={Messages} />
-            <Route path="/profile" component={Profile} />
-            <Route path="/company-info" component={CompanyInfo} />
-            <Route path="/admin" component={Admin} />
-            <Route path="/projects" component={Projects} />
-            <Route path="/personnel" component={Personnel} />
-            <Route path="/comptabilite" component={Comptabilite} />
-            <Route component={NotFound} />
-          </Switch>
-        </div>
-      </main>
+      <Switch>
+        <Route path="/login" component={Login} />
+        <Route>
+          <ProtectedRoute>
+            <Navbar isCollapsed={isNavCollapsed} onCollapse={setIsNavCollapsed} />
+            <main className={`transition-all duration-300 ${isNavCollapsed ? 'pl-20' : 'pl-64'}`}>
+              <Header />
+              <div className="container mx-auto px-8 py-8">
+                <Switch>
+                  <Route path="/" component={Dashboard} />
+                  <Route path="/inventory" component={Inventory} />
+                  <Route path="/services" component={Services} />
+                  <Route path="/invoices" component={Invoices} />
+                  <Route path="/customers" component={Customers} />
+                  <Route path="/expenses" component={Expenses} />
+                  <Route path="/sales" component={Sales} />
+                  <Route path="/messages" component={Messages} />
+                  <Route path="/profile" component={Profile} />
+                  <Route path="/company-info" component={CompanyInfo} />
+                  <Route path="/admin" component={Admin} />
+                  <Route path="/projects" component={Projects} />
+                  <Route path="/personnel" component={Personnel} />
+                  <Route path="/comptabilite" component={Comptabilite} />
+                  <Route component={NotFound} />
+                </Switch>
+              </div>
+            </main>
+          </ProtectedRoute>
+        </Route>
+      </Switch>
       <Toaster />
     </div>
   );

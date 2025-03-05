@@ -10,14 +10,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Header() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const { userInfo } = useUser();
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
 
   useEffect(() => {
-    // Récupérer le thème sauvegardé
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'system';
     if (savedTheme) {
       setTheme(savedTheme);
@@ -25,7 +26,6 @@ export default function Header() {
       if (savedTheme !== 'system') {
         document.documentElement.classList.add(savedTheme);
       } else {
-        // Si système, utiliser la préférence du système
         if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
           document.documentElement.classList.add('dark');
         } else {
@@ -34,7 +34,6 @@ export default function Header() {
       }
     }
 
-    // Écouter les changements de préférence système
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => {
       if (theme === 'system') {
@@ -55,18 +54,27 @@ export default function Header() {
     document.documentElement.classList.add(newTheme);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("isAuthenticated");
+    toast({
+      title: "Déconnexion réussie",
+      description: "Vous avez été déconnecté avec succès."
+    });
+    setLocation("/login");
+  };
+
   return (
     <div className="flex items-center justify-between px-8 py-4 border-b transition-all duration-300">
       <div className="flex items-center gap-4">
         <Avatar className="w-10 h-10">
-          <AvatarImage src={userInfo.avatar} />
+          <AvatarImage src={userInfo?.avatar} />
           <AvatarFallback>
-            {userInfo.name.split(' ').map(n => n[0]).join('')}
+            {userInfo?.name?.split(' ').map(n => n[0]).join('') || 'U'}
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
           <h2 className="text-lg font-semibold text-foreground transition-colors duration-300">
-            Hello, {userInfo.name} 👋
+            Hello, {userInfo?.name || 'Utilisateur'} 👋
           </h2>
           <p className="text-sm text-muted-foreground transition-colors duration-300">
             {new Date().toLocaleDateString('fr-FR', {
@@ -104,9 +112,9 @@ export default function Header() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Avatar className="cursor-pointer transition-all duration-300 hover:scale-105">
-              <AvatarImage src={userInfo.avatar} />
+              <AvatarImage src={userInfo?.avatar} />
               <AvatarFallback>
-                {userInfo.name.split(' ').map(n => n[0]).join('')}
+                {userInfo?.name?.split(' ').map(n => n[0]).join('') || 'U'}
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
@@ -119,7 +127,10 @@ export default function Header() {
               <Settings className="mr-2 h-4 w-4" />
               <span>Paramètres</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600 transition-colors duration-300">
+            <DropdownMenuItem 
+              onClick={handleLogout} 
+              className="text-red-600 transition-colors duration-300"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Déconnexion</span>
             </DropdownMenuItem>
