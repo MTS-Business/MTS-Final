@@ -25,19 +25,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface ExpenseFormProps {
   onSuccess?: () => void;
 }
 
 const expenseCategories = [
-  "Supplies",
-  "Equipment",
-  "Rent",
-  "Utilities",
-  "Payroll",
+  "Fournitures",
+  "Équipement",
+  "Loyer",
+  "Services",
+  "Salaires",
   "Marketing",
-  "Other",
+  "Autre",
 ];
 
 export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
@@ -47,17 +48,20 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
     defaultValues: {
       description: "",
       amount: 0,
-      date: new Date().toISOString(),
-      category: "Other",
+      date: new Date().toISOString().split('T')[0],
+      category: "Autre",
+      invoiceFile: undefined,
+      taxRate: 19, // TVA par défaut en Tunisie
+      priceHT: 0,
+      priceTTC: 0
     },
   });
 
   const createExpense = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: FormData) => {
       const res = await fetch("/api/expenses", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: data,
       });
       if (!res.ok) throw new Error("Failed to create expense");
       return res.json();
@@ -65,21 +69,34 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
       toast({
-        title: "Expense created",
-        description: "The expense has been added successfully",
+        title: "Dépense créée",
+        description: "La dépense a été ajoutée avec succès",
       });
       onSuccess?.();
     },
   });
 
+  const calculatePrices = (priceHT: number, taxRate: number) => {
+    const priceTTC = priceHT * (1 + taxRate / 100);
+    form.setValue("priceTTC", Number(priceTTC.toFixed(3)));
+  };
+
   const onSubmit = (data: any) => {
-    createExpense.mutate(data);
+    const formData = new FormData();
+    Object.keys(data).forEach(key => {
+      if (key === 'invoiceFile' && data[key]?.length > 0) {
+        formData.append('invoiceFile', data[key][0]);
+      } else {
+        formData.append(key, data[key]);
+      }
+    });
+    createExpense.mutate(formData);
   };
 
   return (
     <div className="space-y-4">
       <DialogHeader>
-        <DialogTitle>Add New Expense</DialogTitle>
+        <DialogTitle>Ajouter une nouvelle dépense</DialogTitle>
       </DialogHeader>
 
       <Form {...form}>
@@ -98,18 +115,64 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
             )}
           />
 
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="priceHT"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Prix HT</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.001"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(Number(e.target.value));
+                        calculatePrices(Number(e.target.value), form.getValues("taxRate"));
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="taxRate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Taux TVA (%)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="1"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(Number(e.target.value));
+                        calculatePrices(form.getValues("priceHT"), Number(e.target.value));
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
           <FormField
             control={form.control}
-            name="amount"
+            name="priceTTC"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Amount</FormLabel>
+                <FormLabel>Prix TTC</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
-                    step="0.01"
+                    step="0.001"
                     {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    disabled
                   />
                 </FormControl>
                 <FormMessage />
@@ -122,14 +185,14 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
             name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Category</FormLabel>
+                <FormLabel>Catégorie</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder="Sélectionner une catégorie" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -145,8 +208,38 @@ export default function ExpenseForm({ onSuccess }: ExpenseFormProps) {
             )}
           />
 
-          <Button type="submit" className="w-full">
-            Add Expense
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="space-y-2">
+            <Label htmlFor="invoiceFile">Facture (Optionnel)</Label>
+            <Input
+              id="invoiceFile"
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={(e) => {
+                form.setValue("invoiceFile", e.target.files);
+              }}
+            />
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={createExpense.isPending}
+          >
+            {createExpense.isPending ? "Ajout en cours..." : "Ajouter la dépense"}
           </Button>
         </form>
       </Form>
