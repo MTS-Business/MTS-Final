@@ -15,54 +15,95 @@ import {
   Area,
 } from "recharts";
 
-const data = [
-  { name: "Jan", income: 4000, expense: 2400 },
-  { name: "Fév", income: 3000, expense: 1398 },
-  { name: "Mar", income: 2000, expense: 9800 },
-  { name: "Avr", income: 2780, expense: 3908 },
-  { name: "Mai", income: 1890, expense: 4800 },
-  { name: "Jun", income: 2390, expense: 3800 },
-];
-
-const recentTransactions = [
-  { name: "Ordinateur portable Pro", amount: 1299.99, date: "2024-03-04", type: "expense" },
-  { name: "Installation Windows", amount: 99.99, date: "2024-03-03", type: "income" },
-  { name: "Formation bureautique", amount: 299.99, date: "2024-03-02", type: "income" },
-  { name: "Maintenance annuelle", amount: 599.99, date: "2024-03-01", type: "income" },
-];
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-interface Customer {
-  id: number;
-  name: string;
-}
-
-interface Invoice {
-  id: number;
-  total: number;
-}
-
-interface Expense {
-  id: number;
-  amount: number;
-}
-
 export default function Dashboard() {
-  const { data: products } = useQuery<Product[]>({ queryKey: ["/api/products"] });
-  const { data: customers } = useQuery<Customer[]>({ queryKey: ["/api/customers"] });
-  const { data: invoices } = useQuery<Invoice[]>({ queryKey: ["/api/invoices"] });
-  const { data: expenses } = useQuery<Expense[]>({ queryKey: ["/api/expenses"] });
+  // Récupérer les données en temps réel
+  const { data: products = [] } = useQuery({ 
+    queryKey: ["/api/products"],
+  });
 
+  const { data: customers = [] } = useQuery({ 
+    queryKey: ["/api/customers"],
+  });
+
+  const { data: invoices = [] } = useQuery({ 
+    queryKey: ["/api/invoices"],
+  });
+
+  const { data: expenses = [] } = useQuery({ 
+    queryKey: ["/api/expenses"],
+  });
+
+  const { data: tasks = [] } = useQuery({ 
+    queryKey: ["/api/tasks"],
+  });
+
+  // Calculer les statistiques
   const totalProducts = products?.length || 0;
   const totalCustomers = customers?.length || 0;
   const totalSales = invoices?.reduce((acc, inv) => acc + Number(inv.total), 0) || 0;
   const totalExpenses = expenses?.reduce((acc, exp) => acc + Number(exp.amount), 0) || 0;
+
+  // Calculer les tendances mensuelles
+  const getMonthlyData = () => {
+    const monthlyData = new Map();
+
+    // Traiter les ventes
+    invoices?.forEach((invoice) => {
+      const date = new Date(invoice.date);
+      const monthKey = date.toLocaleString('fr-FR', { month: 'short' });
+      const currentTotal = monthlyData.get(monthKey)?.income || 0;
+      monthlyData.set(monthKey, { 
+        ...monthlyData.get(monthKey),
+        income: currentTotal + Number(invoice.total)
+      });
+    });
+
+    // Traiter les dépenses
+    expenses?.forEach((expense) => {
+      const date = new Date(expense.date);
+      const monthKey = date.toLocaleString('fr-FR', { month: 'short' });
+      const currentTotal = monthlyData.get(monthKey)?.expense || 0;
+      monthlyData.set(monthKey, {
+        ...monthlyData.get(monthKey),
+        expense: currentTotal + Number(expense.amount)
+      });
+    });
+
+    return Array.from(monthlyData, ([name, data]) => ({
+      name,
+      income: data.income || 0,
+      expense: data.expense || 0
+    }));
+  };
+
+  const monthlyData = getMonthlyData();
+
+  // Obtenir les transactions récentes
+  const getRecentTransactions = () => {
+    const allTransactions = [
+      // Transformer les factures en transactions
+      ...invoices.map(invoice => ({
+        name: `Facture ${invoice.reference}`,
+        amount: Number(invoice.total),
+        date: invoice.date,
+        type: "income"
+      })),
+      // Transformer les dépenses en transactions
+      ...expenses.map(expense => ({
+        name: expense.description,
+        amount: Number(expense.amount),
+        date: expense.date,
+        type: "expense"
+      }))
+    ];
+
+    // Trier par date décroissante et prendre les 5 plus récentes
+    return allTransactions
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5);
+  };
+
+  const recentTransactions = getRecentTransactions();
 
   return (
     <div className="space-y-8">
@@ -71,31 +112,43 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <DashboardCard
           title="Solde total"
-          value={`${(totalSales - totalExpenses).toFixed(2)} €`}
+          value={`${(totalSales - totalExpenses).toFixed(3)} DT`}
           icon={<Wallet className="h-4 w-4 text-primary" />}
-          percentage={{ value: 4.5, trend: "up" }}
-          subtext="vs mois dernier"
+          percentage={{ 
+            value: Math.round(((totalSales - totalExpenses) / totalSales) * 100), 
+            trend: totalSales > totalExpenses ? "up" : "down" 
+          }}
+          subtext="Solde actuel"
         />
         <DashboardCard
           title="Ventes mensuelles"
-          value={`${totalSales.toFixed(2)} €`}
+          value={`${totalSales.toFixed(3)} DT`}
           icon={<Receipt className="h-4 w-4 text-primary" />}
-          percentage={{ value: 2.9, trend: "down" }}
-          subtext="vs mois dernier"
+          percentage={{ 
+            value: Math.round((invoices?.length || 0) / 30), 
+            trend: "up" 
+          }}
+          subtext="Moyenne par jour"
         />
         <DashboardCard
           title="Clients"
           value={totalCustomers}
           icon={<Users className="h-4 w-4 text-primary" />}
-          percentage={{ value: 12, trend: "up" }}
-          subtext="nouveaux clients"
+          percentage={{ 
+            value: Math.round((customers?.length || 0) / 10) * 10, 
+            trend: "up" 
+          }}
+          subtext="clients actifs"
         />
         <DashboardCard
-          title="Produits"
-          value={totalProducts}
+          title="Projets"
+          value={tasks?.length || 0}
           icon={<Package className="h-4 w-4 text-primary" />}
-          percentage={{ value: 3, trend: "down" }}
-          subtext="en stock"
+          percentage={{ 
+            value: Math.round((tasks?.filter(t => t.status === "done")?.length || 0) / (tasks?.length || 1) * 100),
+            trend: "up" 
+          }}
+          subtext="projets en cours"
         />
       </div>
 
@@ -104,7 +157,7 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold mb-6 text-foreground">Statistiques financières</h2>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
+              <AreaChart data={monthlyData}>
                 <defs>
                   <linearGradient id="income" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#5863F8" stopOpacity={0.1}/>
@@ -159,7 +212,7 @@ export default function Dashboard() {
                   transaction.type === "income" ? "text-success" : "text-destructive"
                 )}>
                   {transaction.type === "income" ? "+" : "-"}
-                  {transaction.amount.toFixed(2)} €
+                  {transaction.amount.toFixed(3)} DT
                 </span>
               </div>
             ))}
