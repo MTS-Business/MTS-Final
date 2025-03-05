@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,20 +10,27 @@ import { useUser } from "@/context/user-context";
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { login } = useUser();
+  const { login, isAuthenticated } = useUser();
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
   });
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      setLocation("/");
+    }
+  }, [isAuthenticated, setLocation]);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(credentials.username, credentials.password)) {
+    login(credentials.username, credentials.password);
+
+    if (credentials.username === "admin" && credentials.password === "admin") {
       toast({
         title: "Connexion réussie",
         description: "Bienvenue dans votre espace de gestion",
       });
-      setLocation("/");
     } else {
       toast({
         title: "Erreur de connexion",

@@ -3,14 +3,14 @@ import { useLocation } from "wouter";
 import { useUser } from "@/context/user-context";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { isAuthenticated } = useUser();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated && location !== "/login") {
       setLocation("/login");
     }
-  }, [isAuthenticated, setLocation]);
+  }, [isAuthenticated, location, setLocation]);
 
   return isAuthenticated ? <>{children}</> : null;
 }

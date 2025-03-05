@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 
 interface UserInfo {
   name: string;
@@ -14,9 +14,8 @@ interface UserInfo {
 
 interface UserContextType {
   userInfo: UserInfo | null;
-  updateUserInfo: (info: Partial<UserInfo>) => void;
   isAuthenticated: boolean;
-  login: (username: string, password: string) => boolean;
+  login: (username: string, password: string) => void;
   logout: () => void;
 }
 
@@ -35,23 +34,21 @@ const initialUserInfo: UserInfo = {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem("isAuthenticated") === "true";
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(() => {
+    const isAuth = localStorage.getItem("isAuthenticated") === "true";
+    return isAuth ? initialUserInfo : null;
   });
 
-  const updateUserInfo = (info: Partial<UserInfo>) => {
-    setUserInfo(prev => prev ? { ...prev, ...info } : null);
-  };
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem("isAuthenticated") === "true";
+  });
 
   const login = (username: string, password: string) => {
     if (username === "admin" && password === "admin") {
       setIsAuthenticated(true);
       setUserInfo(initialUserInfo);
       localStorage.setItem("isAuthenticated", "true");
-      return true;
     }
-    return false;
   };
 
   const logout = () => {
@@ -60,8 +57,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("isAuthenticated");
   };
 
+  const value = {
+    userInfo,
+    isAuthenticated,
+    login,
+    logout
+  };
+
   return (
-    <UserContext.Provider value={{ userInfo, updateUserInfo, isAuthenticated, login, logout }}>
+    <UserContext.Provider value={value}>
       {children}
     </UserContext.Provider>
   );
