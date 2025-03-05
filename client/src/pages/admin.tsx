@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -85,7 +86,7 @@ export default function Admin() {
 
   const { data: users = initialUsers, isLoading } = useQuery({
     queryKey: ["/api/users"],
-    initialData: initialUsers, //Added to prevent initial blank table
+    initialData: initialUsers,
   });
 
   const createUser = useMutation({
@@ -150,7 +151,7 @@ export default function Admin() {
   }
 
   const handleDeleteUser = (userId: number) => {
-    queryClient.setQueryData(["/api/users"], (oldUsers) =>
+    queryClient.setQueryData(["/api/users"], (oldUsers: typeof users) =>
       oldUsers.filter((user) => user.id !== userId)
     );
     toast({
@@ -161,7 +162,7 @@ export default function Admin() {
 
   const handleOpenAccess = (user: any) => {
     setSelectedUser(user);
-    setSelectedPages(roles.find(r => r.label === user.role)?.pages || []);
+    setSelectedPages([]);
     setIsAccessOpen(true);
   };
 
