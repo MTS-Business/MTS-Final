@@ -53,11 +53,14 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
       <div className="flex flex-col h-full p-4">
         <div className="flex items-center justify-between mb-8">
           <div className={cn(
-            "font-bold text-2xl transition-all",
-            isCollapsed ? "hidden" : "block",
-            "text-[#862325]"
+            "transition-all",
+            isCollapsed ? "w-8" : "w-32"
           )}>
-            MTS gestion
+            <img 
+              src="/attached_assets/logo mts.png" 
+              alt="MTS Gestion" 
+              className="w-full h-auto"
+            />
           </div>
           <Button
             variant="ghost"

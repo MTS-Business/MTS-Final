@@ -49,7 +49,11 @@ export default function Login() {
       >
         <Card className="w-[400px] p-6 space-y-6">
           <div className="space-y-2 text-center">
-            <h1 className="text-2xl font-bold tracking-tight">MTS Gestion</h1>
+            <img 
+              src="/attached_assets/logo mts.png" 
+              alt="MTS Gestion" 
+              className="w-48 mx-auto mb-4"
+            />
             <p className="text-sm text-muted-foreground">
               Connectez-vous à votre espace de gestion
             </p>
