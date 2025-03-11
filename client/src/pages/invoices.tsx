@@ -288,7 +288,10 @@ export default function Invoices() {
                   <Button variant="outline" onClick={() => setTransformOpen(false)}>
                     Annuler
                   </Button>
-                  <Button onClick={handleTransformSubmit}>
+                  <Button 
+                    onClick={handleTransformSubmit}
+                    className="bg-[#0077B6] text-white hover:bg-[#0077B6]/90"
+                  >
                     Transformer en facture
                   </Button>
                 </div>
