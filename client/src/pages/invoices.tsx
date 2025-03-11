@@ -199,8 +199,8 @@ export default function Invoices() {
               </svg>
               Transformer
             </Button>
-            <DialogContent className="fixed top-0 right-0 h-screen max-w-xl rounded-l-lg overflow-auto bg-background">
-              <div className="h-full flex flex-col">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+              <div className="flex flex-col">
                 <h2 className="text-2xl font-bold mb-4">Transformer en Facture</h2>
                 <div className="mb-4">
                   <Label>Client</Label>
