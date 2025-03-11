@@ -30,6 +30,7 @@ import PurchaseOrders from "@/pages/purchase-orders";
 import SupplierDelivery from "@/pages/supplier-delivery";
 import SupplierCreditNotes from "@/pages/supplier-credit-notes";
 import ExpenseInvoices from "@/pages/expense-invoices";
+import Financial from "@/pages/financial";
 import { useState } from "react";
 
 function Router() {
@@ -61,6 +62,7 @@ function Router() {
                   <Route path="/supplier-delivery" component={SupplierDelivery} />
                   <Route path="/supplier-credit-notes" component={SupplierCreditNotes} />
                   <Route path="/expense-invoices" component={ExpenseInvoices} />
+                  <Route path="/financial" component={Financial} />
                   <Route path="/messages" component={Messages} />
                   <Route path="/profile" component={Profile} />
                   <Route path="/company-info" component={CompanyInfo} />

@@ -22,9 +22,10 @@ import {
   ShoppingCart,
   UserCheck,
   ClipboardList,
-  FileText as FileInvoice, // Utiliser FileText comme alternative
+  FileText as FileInvoice,
   Box,
   UserPlus,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -55,16 +56,20 @@ const hrItems = [
   { href: "/personnel", label: "Personnel", icon: UserCircle },
 ];
 
+const accountingItems = [
+  { href: "/financial", label: "Gestion financière", icon: Wallet },
+  { href: "/expenses", label: "Dépenses", icon: DollarSign },
+  { href: "/comptabilite", label: "Relation avec comptable", icon: Calculator },
+];
+
 const mainNavItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/services", label: "Services", icon: Briefcase },
-  { href: "/expenses", label: "Dépenses", icon: DollarSign },
 ];
 
 const adminItems = [
   { href: "/company-info", label: "Informations société", icon: Building2 },
   { href: "/admin", label: "Administration", icon: Shield },
-  { href: "/comptabilite", label: "Comptabilité", icon: Calculator },
 ];
 
 interface NavbarProps {
@@ -78,6 +83,7 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
   const [isPurchaseExpanded, setIsPurchaseExpanded] = useState(true);
   const [isStockExpanded, setIsStockExpanded] = useState(true);
   const [isHrExpanded, setIsHrExpanded] = useState(true);
+  const [isAccountingExpanded, setIsAccountingExpanded] = useState(true);
 
   const NavItem = ({ href, label, icon: Icon, onClick = null }) => (
     <Link href={href}>
@@ -190,6 +196,28 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
     </div>
   );
 
+  const AccountingHeader = () => (
+    <div
+      className={cn(
+        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors cursor-pointer",
+        "hover:bg-[#0077B6]/10"
+      )}
+      onClick={() => setIsAccountingExpanded(!isAccountingExpanded)}
+    >
+      <Calculator className="h-5 w-5" />
+      {!isCollapsed && (
+        <>
+          <span className="flex-1">Comptabilité</span>
+          {isAccountingExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </>
+      )}
+    </div>
+  );
+
   return (
     <nav className={cn(
       "border-r fixed left-0 top-0 h-screen bg-background transition-all duration-300",
@@ -255,6 +283,15 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
           {isHrExpanded && !isCollapsed && (
             <div className="ml-3 border-l pl-3 flex flex-col gap-1">
               {hrItems.map((item) => (
+                <NavItem key={item.href} {...item} />
+              ))}
+            </div>
+          )}
+
+          <AccountingHeader />
+          {isAccountingExpanded && !isCollapsed && (
+            <div className="ml-3 border-l pl-3 flex flex-col gap-1">
+              {accountingItems.map((item) => (
                 <NavItem key={item.href} {...item} />
               ))}
             </div>
