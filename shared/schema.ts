@@ -11,7 +11,7 @@ export const customers = pgTable("customers", {
   address: text("address").notNull(),
   fiscalNumber: text("fiscal_number"),
   category: text("category").notNull(),
-  documents: text("documents").array(),
+  documents: text("documents").array().notNull().default([]),
 });
 
 export const products = pgTable("products", {

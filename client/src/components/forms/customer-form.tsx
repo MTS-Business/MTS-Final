@@ -229,7 +229,7 @@ export default function CustomerForm({ onSuccess }: CustomerFormProps) {
                   />
                 </FormControl>
                 <FormDescription>
-                  Vous pouvez télécharger plusieurs fichiers
+                  Ce champ est optionnel. Vous pouvez télécharger plusieurs fichiers si nécessaire.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
