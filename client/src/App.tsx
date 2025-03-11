@@ -23,6 +23,9 @@ import Comptabilite from "@/pages/comptabilite";
 import CompanyInfo from "@/pages/company-info";
 import NotFound from "@/pages/not-found";
 import { useState } from "react";
+import CreditNotes from "@/pages/credit-notes"; // Import missing component
+import Quotes from "@/pages/quotes"; // Import missing component
+import DeliveryNotes from "@/pages/delivery-notes"; // Import missing component
 
 function Router() {
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
@@ -44,7 +47,9 @@ function Router() {
                   <Route path="/invoices" component={Invoices} />
                   <Route path="/customers" component={Customers} />
                   <Route path="/expenses" component={Expenses} />
-                  <Route path="/sales" component={Sales} />
+                  <Route path="/credit-notes" component={CreditNotes} />
+                  <Route path="/quotes" component={Quotes} />
+                  <Route path="/delivery-notes" component={DeliveryNotes} />
                   <Route path="/messages" component={Messages} />
                   <Route path="/profile" component={Profile} />
                   <Route path="/company-info" component={CompanyInfo} />

@@ -6,6 +6,7 @@ import {
   FileText,
   Users,
   DollarSign,
+  Receipt,
   TrendingUp,
   Briefcase,
   ChevronLeft,
@@ -15,18 +16,26 @@ import {
   UserCircle,
   Calculator,
   Building2,
+  Truck,
+  FileMinus,
+  FileCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
-const navItems = [
+const salesItems = [
+  { href: "/customers", label: "Clients", icon: Users },
+  { href: "/invoices", label: "Factures", icon: Receipt },
+  { href: "/credit-notes", label: "Avoirs", icon: FileMinus },
+  { href: "/quotes", label: "Devis", icon: FileText },
+  { href: "/delivery-notes", label: "Bons de livraison", icon: Truck },
+];
+
+const mainNavItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/inventory", label: "Inventaire", icon: Package },
   { href: "/services", label: "Services", icon: Briefcase },
-  { href: "/invoices", label: "Factures", icon: FileText },
-  { href: "/customers", label: "Clients", icon: Users },
   { href: "/expenses", label: "Dépenses", icon: DollarSign },
-  { href: "/sales", label: "Ventes", icon: TrendingUp },
   { href: "/projects", label: "Projets", icon: Kanban },
   { href: "/personnel", label: "Personnel", icon: UserCircle },
 ];
@@ -44,6 +53,28 @@ interface NavbarProps {
 
 export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
   const [location] = useLocation();
+
+  const NavItem = ({ href, label, icon: Icon }) => (
+    <Link href={href}>
+      <a
+        className={cn(
+          "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+          location === href
+            ? "bg-[#0077B6] text-white"
+            : "hover:bg-[#0077B6]/10"
+        )}
+        title={isCollapsed ? label : undefined}
+      >
+        <Icon className="h-5 w-5" />
+        <span className={cn(
+          "transition-all",
+          isCollapsed ? "hidden" : "block"
+        )}>
+          {label}
+        </span>
+      </a>
+    </Link>
+  );
 
   return (
     <nav className={cn(
@@ -75,58 +106,28 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
             )}
           </Button>
         </div>
+
         <div className="flex flex-col gap-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link key={item.href} href={item.href}>
-                <a
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-                    location === item.href
-                      ? "bg-[#0077B6] text-white"
-                      : "hover:bg-[#0077B6]/10"
-                  )}
-                  title={isCollapsed ? item.label : undefined}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className={cn(
-                    "transition-all",
-                    isCollapsed ? "hidden" : "block"
-                  )}>
-                    {item.label}
-                  </span>
-                </a>
-              </Link>
-            );
-          })}
+          {mainNavItems.map((item) => (
+            <NavItem key={item.href} {...item} />
+          ))}
 
           <Separator className="my-4" />
 
-          {adminItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link key={item.href} href={item.href}>
-                <a
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-                    location === item.href
-                      ? "bg-[#0077B6] text-white"
-                      : "hover:bg-[#0077B6]/10"
-                  )}
-                  title={isCollapsed ? item.label : undefined}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className={cn(
-                    "transition-all",
-                    isCollapsed ? "hidden" : "block"
-                  )}>
-                    {item.label}
-                  </span>
-                </a>
-              </Link>
-            );
-          })}
+          {!isCollapsed && (
+            <div className="text-sm font-medium text-muted-foreground px-3 mb-2">
+              Ventes
+            </div>
+          )}
+          {salesItems.map((item) => (
+            <NavItem key={item.href} {...item} />
+          ))}
+
+          <Separator className="my-4" />
+
+          {adminItems.map((item) => (
+            <NavItem key={item.href} {...item} />
+          ))}
         </div>
       </div>
     </nav>
