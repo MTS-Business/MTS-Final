@@ -226,61 +226,121 @@ export default function Invoices() {
 
                 <div className="flex-1 overflow-auto">
                   {selectedCustomerId && (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-12"></TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Numéro</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead className="text-right">Total</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredQuotes.map((quote: Document) => (
-                          <TableRow key={`quote-${quote.id}`}>
-                            <TableCell>
-                              <Checkbox
-                                checked={selectedDocuments.quotes.includes(quote.id)}
-                                onCheckedChange={() => toggleDocument('quotes', quote.id)}
-                              />
-                            </TableCell>
-                            <TableCell>Devis</TableCell>
-                            <TableCell>DEV-{quote.id}</TableCell>
-                            <TableCell>{format(new Date(quote.date), "dd/MM/yyyy")}</TableCell>
-                            <TableCell className="text-right">{Number(quote.total).toFixed(2)} €</TableCell>
-                          </TableRow>
-                        ))}
-                        {filteredCreditNotes.map((note: Document) => (
-                          <TableRow key={`credit-${note.id}`}>
-                            <TableCell>
-                              <Checkbox
-                                checked={selectedDocuments.creditNotes.includes(note.id)}
-                                onCheckedChange={() => toggleDocument('creditNotes', note.id)}
-                              />
-                            </TableCell>
-                            <TableCell>Avoir</TableCell>
-                            <TableCell>AV-{note.id}</TableCell>
-                            <TableCell>{format(new Date(note.date), "dd/MM/yyyy")}</TableCell>
-                            <TableCell className="text-right">{Number(note.total).toFixed(2)} €</TableCell>
-                          </TableRow>
-                        ))}
-                        {filteredDeliveryNotes.map((note: Document) => (
-                          <TableRow key={`delivery-${note.id}`}>
-                            <TableCell>
-                              <Checkbox
-                                checked={selectedDocuments.deliveryNotes.includes(note.id)}
-                                onCheckedChange={() => toggleDocument('deliveryNotes', note.id)}
-                              />
-                            </TableCell>
-                            <TableCell>Bon de livraison</TableCell>
-                            <TableCell>BL-{note.id}</TableCell>
-                            <TableCell>{format(new Date(note.date), "dd/MM/yyyy")}</TableCell>
-                            <TableCell className="text-right">{Number(note.total).toFixed(2)} €</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                    <div className="space-y-6">
+                      {/* Devis */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Devis</h3>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-12"></TableHead>
+                              <TableHead>Numéro</TableHead>
+                              <TableHead>Date</TableHead>
+                              <TableHead className="text-right">Total</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredQuotes.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                  Aucun devis trouvé pour ce client
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              filteredQuotes.map((quote: Document) => (
+                                <TableRow key={`quote-${quote.id}`}>
+                                  <TableCell>
+                                    <Checkbox
+                                      checked={selectedDocuments.quotes.includes(quote.id)}
+                                      onCheckedChange={() => toggleDocument('quotes', quote.id)}
+                                    />
+                                  </TableCell>
+                                  <TableCell>DEV-{quote.id}</TableCell>
+                                  <TableCell>{format(new Date(quote.date), "dd/MM/yyyy")}</TableCell>
+                                  <TableCell className="text-right">{Number(quote.total).toFixed(2)} €</TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      {/* Avoirs */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Avoirs</h3>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-12"></TableHead>
+                              <TableHead>Numéro</TableHead>
+                              <TableHead>Date</TableHead>
+                              <TableHead className="text-right">Total</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredCreditNotes.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                  Aucun avoir trouvé pour ce client
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              filteredCreditNotes.map((note: Document) => (
+                                <TableRow key={`credit-${note.id}`}>
+                                  <TableCell>
+                                    <Checkbox
+                                      checked={selectedDocuments.creditNotes.includes(note.id)}
+                                      onCheckedChange={() => toggleDocument('creditNotes', note.id)}
+                                    />
+                                  </TableCell>
+                                  <TableCell>AV-{note.id}</TableCell>
+                                  <TableCell>{format(new Date(note.date), "dd/MM/yyyy")}</TableCell>
+                                  <TableCell className="text-right">{Number(note.total).toFixed(2)} €</TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      {/* Bons de livraison */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Bons de livraison</h3>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-12"></TableHead>
+                              <TableHead>Numéro</TableHead>
+                              <TableHead>Date</TableHead>
+                              <TableHead className="text-right">Total</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredDeliveryNotes.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                                  Aucun bon de livraison trouvé pour ce client
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              filteredDeliveryNotes.map((note: Document) => (
+                                <TableRow key={`delivery-${note.id}`}>
+                                  <TableCell>
+                                    <Checkbox
+                                      checked={selectedDocuments.deliveryNotes.includes(note.id)}
+                                      onCheckedChange={() => toggleDocument('deliveryNotes', note.id)}
+                                    />
+                                  </TableCell>
+                                  <TableCell>BL-{note.id}</TableCell>
+                                  <TableCell>{format(new Date(note.date), "dd/MM/yyyy")}</TableCell>
+                                  <TableCell className="text-right">{Number(note.total).toFixed(2)} €</TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
                   )}
                 </div>
 
