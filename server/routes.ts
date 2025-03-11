@@ -1,19 +1,60 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { insertCustomerSchema, insertProductSchema, insertServiceSchema, insertInvoiceSchema, insertInvoiceItemSchema } from "@shared/schema";
+import { insertCustomerSchema, insertProductSchema, insertServiceSchema, insertInvoiceSchema, insertInvoiceItemSchema, insertExpenseSchema } from "@shared/schema";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+const upload = multer({
+  dest: 'uploads/',
+  fileFilter: (_req, file, cb) => {
+    const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedTypes.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Type de fichier non autorisé'));
+    }
+  }
+});
+
+function generateCustomerReference() {
+  const prefix = "CLI";
+  const timestamp = new Date().getTime().toString().slice(-6);
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `${prefix}${timestamp}${random}`;
+}
 
 export async function registerRoutes(app: Express) {
+  if (!fs.existsSync('uploads')) {
+    fs.mkdirSync('uploads');
+  }
+
   // Customers
   app.get("/api/customers", async (_req, res) => {
     const customers = await storage.getCustomers();
     res.json(customers);
   });
 
-  app.post("/api/customers", async (req, res) => {
-    const data = insertCustomerSchema.parse(req.body);
-    const customer = await storage.createCustomer(data);
-    res.json(customer);
+  app.post("/api/customers", upload.array('documents'), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      const documentPaths = files ? files.map(file => file.path) : [];
+
+      const customerData = {
+        ...req.body,
+        reference: generateCustomerReference(),
+        documents: documentPaths
+      };
+
+      const validatedData = insertCustomerSchema.parse(customerData);
+      const customer = await storage.createCustomer(validatedData);
+      res.json(customer);
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      res.status(400).json({ error: String(error) });
+    }
   });
 
   // Products
@@ -58,7 +99,6 @@ export async function registerRoutes(app: Express) {
 
   app.post("/api/invoices", async (req, res) => {
     try {
-      console.log('Received invoice data:', JSON.stringify(req.body, null, 2));
       const { invoice, items } = req.body;
 
       if (!invoice || !items || !Array.isArray(items)) {
@@ -66,14 +106,12 @@ export async function registerRoutes(app: Express) {
         return;
       }
 
-      // Validate invoice data
       const validatedInvoice = insertInvoiceSchema.parse({
         ...invoice,
         customerId: Number(invoice.customerId),
         total: Number(invoice.total),
       });
 
-      // Validate each item
       const validatedItems = items.map((item: any) =>
         insertInvoiceItemSchema.parse({
           ...item,
@@ -83,9 +121,6 @@ export async function registerRoutes(app: Express) {
           serviceId: item.serviceId ? Number(item.serviceId) : null,
         })
       );
-
-      console.log('Validated invoice:', JSON.stringify(validatedInvoice, null, 2));
-      console.log('Validated items:', JSON.stringify(validatedItems, null, 2));
 
       const newInvoice = await storage.createInvoice(validatedInvoice, validatedItems);
       res.json(newInvoice);

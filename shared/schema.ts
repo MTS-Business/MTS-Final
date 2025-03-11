@@ -4,11 +4,14 @@ import { z } from "zod";
 
 export const customers = pgTable("customers", {
   id: serial("id").primaryKey(),
+  reference: text("reference"),
   name: text("name").notNull(),
   email: text("email").notNull(),
   phone: text("phone").notNull(),
   address: text("address").notNull(),
   fiscalNumber: text("fiscal_number"),
+  category: text("category").notNull(),
+  documents: text("documents").array(),
 });
 
 export const products = pgTable("products", {
@@ -54,7 +57,18 @@ export const expenses = pgTable("expenses", {
 
 // Schémas de validation modifiés pour gérer les types numériques
 export const insertCustomerSchema = createInsertSchema(customers, {
+  reference: z.string().optional(),
   fiscalNumber: z.string().optional(),
+  category: z.enum([
+    "entreprise",
+    "installateur",
+    "particulier",
+    "association",
+    "industrie",
+    "agricole",
+    "etatique"
+  ]),
+  documents: z.array(z.string()).optional(),
 });
 
 export const insertProductSchema = createInsertSchema(products, {
