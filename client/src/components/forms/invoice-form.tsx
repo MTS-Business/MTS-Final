@@ -14,6 +14,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import {
   Select,
@@ -28,8 +29,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -38,8 +39,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-
 
 interface InvoiceFormProps {
   onSuccess?: () => void;
@@ -48,24 +47,10 @@ interface InvoiceFormProps {
   editingInvoice?: any;
 }
 
-interface SelectedProduct {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-interface SelectedService {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice }: InvoiceFormProps) {
+export default function InvoiceForm({ onSuccess, stampDuty, vat: defaultVat, editingInvoice }: InvoiceFormProps) {
   const { toast } = useToast();
-  const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
-  const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
+  const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
   const [temporaryQuantities, setTemporaryQuantities] = useState<Record<number, number>>({});
@@ -73,6 +58,9 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice 
   const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState<any>(null);
+  const [useVat, setUseVat] = useState(true);
+  const [customVat, setCustomVat] = useState(defaultVat);
+  const [discount, setDiscount] = useState(0);
 
   const form = useForm({
     resolver: zodResolver(insertInvoiceSchema),
@@ -149,15 +137,16 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice 
 
   const calculateTotal = () => {
     const subtotal = calculateSubTotal();
-    const vatAmount = subtotal * (vat / 100);
-    return subtotal + vatAmount + stampDuty;
+    const discountAmount = (subtotal * discount) / 100;
+    const afterDiscount = subtotal - discountAmount;
+    const vatAmount = useVat ? afterDiscount * (customVat / 100) : 0;
+    return afterDiscount + vatAmount + stampDuty;
   };
 
   useEffect(() => {
     const total = calculateTotal();
     form.setValue("total", total);
-  }, [selectedProducts, selectedServices, vat, stampDuty]);
-
+  }, [selectedProducts, selectedServices, useVat, customVat, discount]);
 
   const handleProductSelection = (productId: number, checked: boolean) => {
     if (checked) {
@@ -202,7 +191,7 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice 
           quantity: temporaryQuantities[product.id] || 1
         };
       })
-      .filter((p): p is SelectedProduct => p !== null);
+      .filter((p): p is any => p !== null);
 
     setSelectedProducts([...selectedProducts, ...newSelectedProducts]);
     setIsProductDialogOpen(false);
@@ -222,7 +211,7 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice 
           quantity: temporaryQuantities[service.id] || 1
         };
       })
-      .filter((s): s is SelectedService => s !== null);
+      .filter((s): s is any => s !== null);
 
     setSelectedServices([...selectedServices, ...newSelectedServices]);
     setIsServiceDialogOpen(false);
@@ -353,193 +342,220 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice 
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="customerId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Client</FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(Number(value))}
-                  defaultValue={field.value?.toString()}
-                >
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="customerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Client</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(Number(value))}
+                    defaultValue={field.value?.toString()}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un client" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {customers?.map((customer: any) => (
+                        <SelectItem
+                          key={customer.id}
+                          value={customer.id.toString()}
+                        >
+                          {customer.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un client" />
-                    </SelectTrigger>
+                    <Input type="date" {...field} />
                   </FormControl>
-                  <SelectContent>
-                    {customers?.map((customer: any) => (
-                      <SelectItem
-                        key={customer.id}
-                        value={customer.id.toString()}
-                      >
-                        {customer.name}
-                      </SelectItem>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <Button
+                type="button"
+                onClick={() => setIsProductDialogOpen(true)}
+                className="w-full"
+              >
+                Sélectionner des produits
+              </Button>
+            </div>
+            <div>
+              <Button
+                type="button"
+                onClick={() => setIsServiceDialogOpen(true)}
+                className="w-full"
+              >
+                Sélectionner des services
+              </Button>
+            </div>
+          </div>
+
+          <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
+            <DialogTrigger asChild>
+              {/* This section remains unchanged */}
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl">
+              <DialogHeader>
+                <DialogTitle>Sélectionner les produits</DialogTitle>
+              </DialogHeader>
+              <div className="max-h-[60vh] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12"></TableHead>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-right">Prix</TableHead>
+                      <TableHead className="text-right">Stock</TableHead>
+                      <TableHead className="text-right w-32">Quantité</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {products?.map((product: any) => (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedProductIds.includes(product.id)}
+                            onCheckedChange={(checked) =>
+                              handleProductSelection(product.id, checked as boolean)
+                            }
+                            disabled={selectedProducts.some(p => p.id === product.id)}
+                          />
+                        </TableCell>
+                        <TableCell>{product.name}</TableCell>
+                        <TableCell>{product.description}</TableCell>
+                        <TableCell className="text-right">
+                          {Number(product.price).toFixed(2)} €
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {product.quantity}
+                        </TableCell>
+                        <TableCell>
+                          {selectedProductIds.includes(product.id) && (
+                            <Input
+                              type="number"
+                              min="1"
+                              max={product.quantity}
+                              value={temporaryQuantities[product.id] || 1}
+                              onChange={(e) => handleQuantityChange(product.id, Number(e.target.value))}
+                              className="w-24"
+                            />
+                          )}
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="space-y-2">
-            <FormLabel>Produits</FormLabel>
-            <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-              <DialogTrigger asChild>
-                <Button type="button" className="w-full">
-                  Sélectionner des produits
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsProductDialogOpen(false)}
+                >
+                  Annuler
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl">
-                <DialogHeader>
-                  <DialogTitle>Sélectionner les produits</DialogTitle>
-                </DialogHeader>
-                <div className="max-h-[60vh] overflow-y-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12"></TableHead>
-                        <TableHead>Nom</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="text-right">Prix</TableHead>
-                        <TableHead className="text-right">Stock</TableHead>
-                        <TableHead className="text-right w-32">Quantité</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {products?.map((product: any) => (
-                        <TableRow key={product.id}>
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedProductIds.includes(product.id)}
-                              onCheckedChange={(checked) =>
-                                handleProductSelection(product.id, checked as boolean)
-                              }
-                              disabled={selectedProducts.some(p => p.id === product.id)}
-                            />
-                          </TableCell>
-                          <TableCell>{product.name}</TableCell>
-                          <TableCell>{product.description}</TableCell>
-                          <TableCell className="text-right">
-                            {Number(product.price).toFixed(2)} €
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {product.quantity}
-                          </TableCell>
-                          <TableCell>
-                            {selectedProductIds.includes(product.id) && (
-                              <Input
-                                type="number"
-                                min="1"
-                                max={product.quantity}
-                                value={temporaryQuantities[product.id] || 1}
-                                onChange={(e) => handleQuantityChange(product.id, Number(e.target.value))}
-                                className="w-24"
-                              />
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                <div className="flex justify-end gap-2 mt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsProductDialogOpen(false)}
-                  >
-                    Annuler
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleProductDialogConfirm}
-                    disabled={selectedProductIds.length === 0}
-                  >
-                    Valider
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <div className="space-y-2">
-            <FormLabel>Services</FormLabel>
-            <Dialog open={isServiceDialogOpen} onOpenChange={setIsServiceDialogOpen}>
-              <DialogTrigger asChild>
-                <Button type="button" className="w-full">
-                  Sélectionner des services
+                <Button
+                  type="button"
+                  onClick={handleProductDialogConfirm}
+                  disabled={selectedProductIds.length === 0}
+                >
+                  Valider
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl">
-                <DialogHeader>
-                  <DialogTitle>Sélectionner les services</DialogTitle>
-                </DialogHeader>
-                <div className="max-h-[60vh] overflow-y-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12"></TableHead>
-                        <TableHead>Nom</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="text-right">Prix</TableHead>
-                        <TableHead className="text-right w-32">Quantité</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {services?.map((service: any) => (
-                        <TableRow key={service.id}>
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedServiceIds.includes(service.id)}
-                              onCheckedChange={(checked) =>
-                                handleServiceSelection(service.id, checked as boolean)
-                              }
-                              disabled={selectedServices.some(s => s.id === service.id)}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isServiceDialogOpen} onOpenChange={setIsServiceDialogOpen}>
+            <DialogTrigger asChild>
+              {/* This section remains unchanged */}
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl">
+              <DialogHeader>
+                <DialogTitle>Sélectionner les services</DialogTitle>
+              </DialogHeader>
+              <div className="max-h-[60vh] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12"></TableHead>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-right">Prix</TableHead>
+                      <TableHead className="text-right w-32">Quantité</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {services?.map((service: any) => (
+                      <TableRow key={service.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedServiceIds.includes(service.id)}
+                            onCheckedChange={(checked) =>
+                              handleServiceSelection(service.id, checked as boolean)
+                            }
+                            disabled={selectedServices.some(s => s.id === service.id)}
+                          />
+                        </TableCell>
+                        <TableCell>{service.name}</TableCell>
+                        <TableCell>{service.description}</TableCell>
+                        <TableCell className="text-right">
+                          {Number(service.price).toFixed(2)} €
+                        </TableCell>
+                        <TableCell>
+                          {selectedServiceIds.includes(service.id) && (
+                            <Input
+                              type="number"
+                              min="1"
+                              value={temporaryQuantities[service.id] || 1}
+                              onChange={(e) => handleQuantityChange(service.id, Number(e.target.value))}
+                              className="w-24"
                             />
-                          </TableCell>
-                          <TableCell>{service.name}</TableCell>
-                          <TableCell>{service.description}</TableCell>
-                          <TableCell className="text-right">
-                            {Number(service.price).toFixed(2)} €
-                          </TableCell>
-                          <TableCell>
-                            {selectedServiceIds.includes(service.id) && (
-                              <Input
-                                type="number"
-                                min="1"
-                                value={temporaryQuantities[service.id] || 1}
-                                onChange={(e) => handleQuantityChange(service.id, Number(e.target.value))}
-                                className="w-24"
-                              />
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                <div className="flex justify-end gap-2 mt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsServiceDialogOpen(false)}
-                  >
-                    Annuler
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleServiceDialogConfirm}
-                    disabled={selectedServiceIds.length === 0}
-                  >
-                    Valider
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsServiceDialogOpen(false)}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleServiceDialogConfirm}
+                  disabled={selectedServiceIds.length === 0}
+                >
+                  Valider
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           <div className="space-y-2 max-h-[30vh] overflow-y-auto border rounded-lg p-4">
             {selectedProducts.length > 0 && (
@@ -599,15 +615,61 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice 
             )}
           </div>
 
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  checked={useVat}
+                  onCheckedChange={(checked) => setUseVat(checked as boolean)}
+                />
+                <FormLabel>Appliquer la TVA</FormLabel>
+              </div>
+              {useVat && (
+                <div>
+                  <FormLabel>Taux de TVA (%)</FormLabel>
+                  <Input
+                    type="number"
+                    value={customVat}
+                    onChange={(e) => setCustomVat(Number(e.target.value))}
+                    min="0"
+                    max="100"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <FormLabel>Remise (%)</FormLabel>
+              <Input
+                type="number"
+                value={discount}
+                onChange={(e) => setDiscount(Number(e.target.value))}
+                min="0"
+                max="100"
+              />
+              <FormDescription>Optionnel</FormDescription>
+            </div>
+          </div>
+
           <div className="space-y-2 border-t pt-4">
             <div className="flex justify-between text-sm">
               <span>Sous-total:</span>
               <span>{calculateSubTotal().toFixed(2)} €</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span>TVA ({vat}%):</span>
-              <span>{(calculateSubTotal() * (vat / 100)).toFixed(2)} €</span>
-            </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-sm text-red-600">
+                <span>Remise ({discount}%):</span>
+                <span>-{((calculateSubTotal() * discount) / 100).toFixed(2)} €</span>
+              </div>
+            )}
+            {useVat && (
+              <div className="flex justify-between text-sm">
+                <span>TVA ({customVat}%):</span>
+                <span>
+                  {(calculateSubTotal() * (1 - discount / 100) * (customVat / 100)).toFixed(2)} €
+                </span>
+              </div>
+            )}
             <div className="flex justify-between text-sm">
               <span>Timbre fiscal:</span>
               <span>{stampDuty.toFixed(2)} €</span>
@@ -618,58 +680,60 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat, editingInvoice 
             </div>
           </div>
 
-          <FormField
-            control={form.control}
-            name="paymentType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Type de paiement</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner le type de paiement" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="virement">Virement</SelectItem>
-                    <SelectItem value="espece">Espèce</SelectItem>
-                    <SelectItem value="cheque">Chèque</SelectItem>
-                    <SelectItem value="traite">Traite</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="paymentType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type de paiement</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner le type de paiement" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="virement">Virement</SelectItem>
+                      <SelectItem value="espece">Espèce</SelectItem>
+                      <SelectItem value="cheque">Chèque</SelectItem>
+                      <SelectItem value="traite">Traite</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Statut</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner le statut" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="pending">En attente</SelectItem>
-                    <SelectItem value="paid">Payée</SelectItem>
-                    <SelectItem value="cancelled">Annulée</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Statut</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner le statut" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="pending">En attente</SelectItem>
+                      <SelectItem value="paid">Payée</SelectItem>
+                      <SelectItem value="cancelled">Annulée</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <Button type="submit" className="w-full">
             {editingInvoice ? "Modifier la facture" : "Créer la facture"}
