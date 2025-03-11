@@ -13,7 +13,6 @@ import Services from "@/pages/services";
 import Invoices from "@/pages/invoices";
 import Customers from "@/pages/customers";
 import Expenses from "@/pages/expenses";
-import Sales from "@/pages/sales";
 import Messages from "@/pages/messages";
 import Profile from "@/pages/profile";
 import Admin from "@/pages/admin";
@@ -22,10 +21,16 @@ import Personnel from "@/pages/personnel";
 import Comptabilite from "@/pages/comptabilite";
 import CompanyInfo from "@/pages/company-info";
 import NotFound from "@/pages/not-found";
+import CreditNotes from "@/pages/credit-notes";
+import Quotes from "@/pages/quotes";
+import DeliveryNotes from "@/pages/delivery-notes";
+// Import new purchase components
+import Suppliers from "@/pages/suppliers";
+import PurchaseOrders from "@/pages/purchase-orders";
+import SupplierDelivery from "@/pages/supplier-delivery";
+import SupplierCreditNotes from "@/pages/supplier-credit-notes";
+import ExpenseInvoices from "@/pages/expense-invoices";
 import { useState } from "react";
-import CreditNotes from "@/pages/credit-notes"; // Import missing component
-import Quotes from "@/pages/quotes"; // Import missing component
-import DeliveryNotes from "@/pages/delivery-notes"; // Import missing component
 
 function Router() {
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
@@ -50,6 +55,12 @@ function Router() {
                   <Route path="/credit-notes" component={CreditNotes} />
                   <Route path="/quotes" component={Quotes} />
                   <Route path="/delivery-notes" component={DeliveryNotes} />
+                  {/* Purchase routes */}
+                  <Route path="/suppliers" component={Suppliers} />
+                  <Route path="/purchase-orders" component={PurchaseOrders} />
+                  <Route path="/supplier-delivery" component={SupplierDelivery} />
+                  <Route path="/supplier-credit-notes" component={SupplierCreditNotes} />
+                  <Route path="/expense-invoices" component={ExpenseInvoices} />
                   <Route path="/messages" component={Messages} />
                   <Route path="/profile" component={Profile} />
                   <Route path="/company-info" component={CompanyInfo} />

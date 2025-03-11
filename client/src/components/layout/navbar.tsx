@@ -19,6 +19,10 @@ import {
   FileMinus,
   ChevronDown,
   ChevronUp,
+  ShoppingCart,
+  UserCheck,
+  ClipboardList,
+  FileText as FileInvoice, // Utiliser FileText comme alternative
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -30,6 +34,14 @@ const salesItems = [
   { href: "/credit-notes", label: "Avoirs", icon: FileMinus },
   { href: "/quotes", label: "Devis", icon: FileText },
   { href: "/delivery-notes", label: "Bons de livraison", icon: Truck },
+];
+
+const purchaseItems = [
+  { href: "/suppliers", label: "Fournisseurs", icon: UserCheck },
+  { href: "/purchase-orders", label: "Bons de commande", icon: ClipboardList },
+  { href: "/supplier-delivery", label: "Bons de livraison", icon: Truck },
+  { href: "/supplier-credit-notes", label: "Factures d'avoir", icon: FileMinus },
+  { href: "/expense-invoices", label: "Factures de dépense", icon: FileInvoice },
 ];
 
 const mainNavItems = [
@@ -55,6 +67,7 @@ interface NavbarProps {
 export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
   const [location] = useLocation();
   const [isSalesExpanded, setIsSalesExpanded] = useState(true);
+  const [isPurchaseExpanded, setIsPurchaseExpanded] = useState(true);
 
   const NavItem = ({ href, label, icon: Icon, onClick = null }) => (
     <Link href={href}>
@@ -92,6 +105,28 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
         <>
           <span className="flex-1">Ventes</span>
           {isSalesExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </>
+      )}
+    </div>
+  );
+
+  const PurchaseHeader = () => (
+    <div
+      className={cn(
+        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors cursor-pointer",
+        "hover:bg-[#0077B6]/10"
+      )}
+      onClick={() => setIsPurchaseExpanded(!isPurchaseExpanded)}
+    >
+      <ShoppingCart className="h-5 w-5" />
+      {!isCollapsed && (
+        <>
+          <span className="flex-1">Achats</span>
+          {isPurchaseExpanded ? (
             <ChevronUp className="h-4 w-4" />
           ) : (
             <ChevronDown className="h-4 w-4" />
@@ -139,6 +174,15 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
           {isSalesExpanded && !isCollapsed && (
             <div className="ml-3 border-l pl-3 flex flex-col gap-1">
               {salesItems.map((item) => (
+                <NavItem key={item.href} {...item} />
+              ))}
+            </div>
+          )}
+
+          <PurchaseHeader />
+          {isPurchaseExpanded && !isCollapsed && (
+            <div className="ml-3 border-l pl-3 flex flex-col gap-1">
+              {purchaseItems.map((item) => (
                 <NavItem key={item.href} {...item} />
               ))}
             </div>
