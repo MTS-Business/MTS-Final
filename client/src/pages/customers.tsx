@@ -53,7 +53,7 @@ export default function Customers() {
               Nouveau client
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-4xl">
             <CustomerForm onSuccess={() => setOpen(false)} />
           </DialogContent>
         </Dialog>
