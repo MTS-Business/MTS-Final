@@ -7,7 +7,6 @@ import {
   Users,
   DollarSign,
   Receipt,
-  TrendingUp,
   Briefcase,
   ChevronLeft,
   ChevronRight,
@@ -18,10 +17,12 @@ import {
   Building2,
   Truck,
   FileMinus,
-  FileCheck,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
 
 const salesItems = [
   { href: "/customers", label: "Clients", icon: Users },
@@ -53,8 +54,9 @@ interface NavbarProps {
 
 export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
   const [location] = useLocation();
+  const [isSalesExpanded, setIsSalesExpanded] = useState(true);
 
-  const NavItem = ({ href, label, icon: Icon }) => (
+  const NavItem = ({ href, label, icon: Icon, onClick = null }) => (
     <Link href={href}>
       <a
         className={cn(
@@ -64,6 +66,7 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
             : "hover:bg-[#0077B6]/10"
         )}
         title={isCollapsed ? label : undefined}
+        onClick={onClick}
       >
         <Icon className="h-5 w-5" />
         <span className={cn(
@@ -74,6 +77,28 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
         </span>
       </a>
     </Link>
+  );
+
+  const SalesHeader = () => (
+    <div
+      className={cn(
+        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors cursor-pointer",
+        "hover:bg-[#0077B6]/10"
+      )}
+      onClick={() => setIsSalesExpanded(!isSalesExpanded)}
+    >
+      <Receipt className="h-5 w-5" />
+      {!isCollapsed && (
+        <>
+          <span className="flex-1">Ventes</span>
+          {isSalesExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </>
+      )}
+    </div>
   );
 
   return (
@@ -108,23 +133,27 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          {mainNavItems.map((item) => (
-            <NavItem key={item.href} {...item} />
-          ))}
+          <NavItem {...mainNavItems[0]} /> {/* Dashboard */}
 
-          <Separator className="my-4" />
-
-          {!isCollapsed && (
-            <div className="text-sm font-medium text-muted-foreground px-3 mb-2">
-              Ventes
+          <SalesHeader />
+          {isSalesExpanded && !isCollapsed && (
+            <div className="ml-3 border-l pl-3 flex flex-col gap-1">
+              {salesItems.map((item) => (
+                <NavItem key={item.href} {...item} />
+              ))}
             </div>
           )}
-          {salesItems.map((item) => (
+
+          <Separator className="my-4" />
+
+          {/* Rest of main nav items */}
+          {mainNavItems.slice(1).map((item) => (
             <NavItem key={item.href} {...item} />
           ))}
 
           <Separator className="my-4" />
 
+          {/* Admin items */}
           {adminItems.map((item) => (
             <NavItem key={item.href} {...item} />
           ))}
