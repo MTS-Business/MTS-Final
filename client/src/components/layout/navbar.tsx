@@ -24,6 +24,7 @@ import {
   ClipboardList,
   FileText as FileInvoice, // Utiliser FileText comme alternative
   Box,
+  UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -49,12 +50,15 @@ const stockItems = [
   { href: "/inventory", label: "Inventaire", icon: Package },
 ];
 
+const hrItems = [
+  { href: "/projects", label: "Projets", icon: Kanban },
+  { href: "/personnel", label: "Personnel", icon: UserCircle },
+];
+
 const mainNavItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/services", label: "Services", icon: Briefcase },
   { href: "/expenses", label: "Dépenses", icon: DollarSign },
-  { href: "/projects", label: "Projets", icon: Kanban },
-  { href: "/personnel", label: "Personnel", icon: UserCircle },
 ];
 
 const adminItems = [
@@ -73,6 +77,7 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
   const [isSalesExpanded, setIsSalesExpanded] = useState(true);
   const [isPurchaseExpanded, setIsPurchaseExpanded] = useState(true);
   const [isStockExpanded, setIsStockExpanded] = useState(true);
+  const [isHrExpanded, setIsHrExpanded] = useState(true);
 
   const NavItem = ({ href, label, icon: Icon, onClick = null }) => (
     <Link href={href}>
@@ -163,6 +168,28 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
     </div>
   );
 
+  const HRHeader = () => (
+    <div
+      className={cn(
+        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors cursor-pointer",
+        "hover:bg-[#0077B6]/10"
+      )}
+      onClick={() => setIsHrExpanded(!isHrExpanded)}
+    >
+      <UserPlus className="h-5 w-5" />
+      {!isCollapsed && (
+        <>
+          <span className="flex-1">RH</span>
+          {isHrExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </>
+      )}
+    </div>
+  );
+
   return (
     <nav className={cn(
       "border-r fixed left-0 top-0 h-screen bg-background transition-all duration-300",
@@ -219,6 +246,15 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
           {isStockExpanded && !isCollapsed && (
             <div className="ml-3 border-l pl-3 flex flex-col gap-1">
               {stockItems.map((item) => (
+                <NavItem key={item.href} {...item} />
+              ))}
+            </div>
+          )}
+
+          <HRHeader />
+          {isHrExpanded && !isCollapsed && (
+            <div className="ml-3 border-l pl-3 flex flex-col gap-1">
+              {hrItems.map((item) => (
                 <NavItem key={item.href} {...item} />
               ))}
             </div>
