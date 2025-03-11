@@ -23,6 +23,7 @@ import {
   UserCheck,
   ClipboardList,
   FileText as FileInvoice, // Utiliser FileText comme alternative
+  Box,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -44,9 +45,12 @@ const purchaseItems = [
   { href: "/expense-invoices", label: "Factures de dépense", icon: FileInvoice },
 ];
 
+const stockItems = [
+  { href: "/inventory", label: "Inventaire", icon: Package },
+];
+
 const mainNavItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/inventory", label: "Inventaire", icon: Package },
   { href: "/services", label: "Services", icon: Briefcase },
   { href: "/expenses", label: "Dépenses", icon: DollarSign },
   { href: "/projects", label: "Projets", icon: Kanban },
@@ -68,6 +72,7 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
   const [location] = useLocation();
   const [isSalesExpanded, setIsSalesExpanded] = useState(true);
   const [isPurchaseExpanded, setIsPurchaseExpanded] = useState(true);
+  const [isStockExpanded, setIsStockExpanded] = useState(true);
 
   const NavItem = ({ href, label, icon: Icon, onClick = null }) => (
     <Link href={href}>
@@ -136,6 +141,28 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
     </div>
   );
 
+  const StockHeader = () => (
+    <div
+      className={cn(
+        "flex items-center gap-3 px-3 py-2 rounded-md transition-colors cursor-pointer",
+        "hover:bg-[#0077B6]/10"
+      )}
+      onClick={() => setIsStockExpanded(!isStockExpanded)}
+    >
+      <Box className="h-5 w-5" />
+      {!isCollapsed && (
+        <>
+          <span className="flex-1">Stock</span>
+          {isStockExpanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </>
+      )}
+    </div>
+  );
+
   return (
     <nav className={cn(
       "border-r fixed left-0 top-0 h-screen bg-background transition-all duration-300",
@@ -183,6 +210,15 @@ export default function Navbar({ isCollapsed, onCollapse }: NavbarProps) {
           {isPurchaseExpanded && !isCollapsed && (
             <div className="ml-3 border-l pl-3 flex flex-col gap-1">
               {purchaseItems.map((item) => (
+                <NavItem key={item.href} {...item} />
+              ))}
+            </div>
+          )}
+
+          <StockHeader />
+          {isStockExpanded && !isCollapsed && (
+            <div className="ml-3 border-l pl-3 flex flex-col gap-1">
+              {stockItems.map((item) => (
                 <NavItem key={item.href} {...item} />
               ))}
             </div>
