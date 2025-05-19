@@ -382,7 +382,9 @@ export default function InvoiceForm({ onSuccess, stampDuty, vat: defaultVat, edi
                 <FormItem>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" {...field}  
+                    onChange={(e) => field.onChange(new Date(e.target.value))} // Convert to Date object
+                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

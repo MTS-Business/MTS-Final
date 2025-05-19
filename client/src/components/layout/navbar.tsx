@@ -33,10 +33,10 @@ import { useState } from "react";
 
 const salesItems = [
   { href: "/customers", label: "Clients", icon: Users },
-  { href: "/invoices", label: "Factures", icon: Receipt },
-  { href: "/credit-notes", label: "Avoirs", icon: FileMinus },
   { href: "/quotes", label: "Devis", icon: FileText },
   { href: "/delivery-notes", label: "Bons de livraison", icon: Truck },
+  { href: "/invoices", label: "Factures", icon: Receipt },
+  { href: "/credit-notes", label: "Facture d'avoirs", icon: FileMinus },
 ];
 
 const purchaseItems = [

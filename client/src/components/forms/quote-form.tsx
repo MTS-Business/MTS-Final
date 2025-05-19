@@ -298,7 +298,10 @@ export default function QuoteForm({ onSuccess, vat: defaultVat, stampDuty = 0.6 
                 <FormItem>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" 
+                    {...field}  
+                    onChange={(e) => field.onChange(new Date(e.target.value))} // Convert to Date object
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

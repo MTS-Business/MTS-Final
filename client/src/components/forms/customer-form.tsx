@@ -53,7 +53,7 @@ export default function CustomerForm({ onSuccess }: CustomerFormProps) {
       address: "",
       fiscalNumber: "",
       category: "",
-      documents: null,
+      documents: [], // Keep it empty initially, files will be handled later
     },
   });
 
@@ -78,16 +78,19 @@ export default function CustomerForm({ onSuccess }: CustomerFormProps) {
 
   const onSubmit = (data: any) => {
     const formData = new FormData();
-    Object.keys(data).forEach(key => {
-      if (key === 'documents' && data[key]) {
-        Array.from(data[key]).forEach((file: File) => {
-          formData.append('documents', file);
+    
+    // Append each field to the FormData
+    Object.keys(data).forEach((key) => {
+      if (key === "documents" && data[key]) {
+        // Handle file input correctly
+        Array.from(data[key] as FileList).forEach((file: File) => {
+          formData.append("documents", file);
         });
       } else {
         formData.append(key, data[key]);
       }
     });
-
+  
     createCustomer.mutate(formData);
   };
 
@@ -213,6 +216,7 @@ export default function CustomerForm({ onSuccess }: CustomerFormProps) {
             )}
           />
 
+          {/* File Upload */}
           <FormField
             control={form.control}
             name="documents"
@@ -223,9 +227,11 @@ export default function CustomerForm({ onSuccess }: CustomerFormProps) {
                   <Input
                     type="file"
                     multiple
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => onChange(e.target.files)}
-                    {...field}
+                    accept=".pdf"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      onChange(files);
+                    }}
                   />
                 </FormControl>
                 <FormDescription>
@@ -235,7 +241,7 @@ export default function CustomerForm({ onSuccess }: CustomerFormProps) {
               </FormItem>
             )}
           />
-
+          
           <Button type="submit" className="w-full">
             Ajouter le client
           </Button>

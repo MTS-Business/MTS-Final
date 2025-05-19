@@ -66,26 +66,32 @@ export class MemStorage implements IStorage {
     this.customers.set(1, {
       id: 1,
       name: "Société ABC",
+      category: "entreprise",
       email: "contact@abc.com",
       phone: "0123456789",
       address: "123 Rue Principale, 75001 Paris",
-      fiscalNumber: "FR123456789"
+      fiscalNumber: "FR123456789",
+      documents: []
     });
     this.customers.set(2, {
       id: 2,
       name: "Enterprise XYZ",
+      category: "entreprise",
       email: "info@xyz.com",
       phone: "0987654321",
       address: "456 Avenue des Affaires, 69001 Lyon",
-      fiscalNumber: "FR987654321"
+      fiscalNumber: "FR987654321",
+      documents: []
     });
     this.customers.set(3, {
       id: 3,
       name: "Compagnie 123",
+      category: "entreprise",
       email: "contact@123.com",
       phone: "0567891234",
       address: "789 Boulevard du Commerce, 31000 Toulouse",
-      fiscalNumber: "FR567891234"
+      fiscalNumber: "FR567891234",
+      documents: []
     });
 
     // Add initial products

@@ -39,16 +39,25 @@ export async function registerRoutes(app: Express) {
 
   app.post("/api/customers", upload.array('documents'), async (req, res) => {
     try {
-      const files = req.files as Express.Multer.File[];
-      const documentPaths = files ? files.map(file => file.path) : [];
-
+      const files = req.files as Express.Multer.File[] || [];
+      const documentPaths = Array.isArray(files) ? files.map(file => file.path) : [];
+  
       const customerData = {
         ...req.body,
         reference: generateCustomerReference(),
-        documents: documentPaths
+        documents: documentPaths,
       };
-
-      const validatedData = insertCustomerSchema.parse(customerData);
+  
+      // Ensure req.body fields are parsed correctly
+      const parsedCustomerData = {
+        ...customerData,
+        name: req.body.name,
+        email: req.body.email,
+        phone: req.body.phone,
+        category: req.body.category,
+      };
+  
+      const validatedData = insertCustomerSchema.parse(parsedCustomerData);
       const customer = await storage.createCustomer(validatedData);
       res.json(customer);
     } catch (error) {
@@ -56,6 +65,7 @@ export async function registerRoutes(app: Express) {
       res.status(400).json({ error: String(error) });
     }
   });
+  
 
   // Products
   app.get("/api/products", async (_req, res) => {

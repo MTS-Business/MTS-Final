@@ -297,7 +297,9 @@ export default function CreditNoteForm({ onSuccess, vat: defaultVat, stampDuty =
                 <FormItem>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" {...field} 
+                     onChange={(e) => field.onChange(new Date(e.target.value))} // Convert to Date object
+                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
